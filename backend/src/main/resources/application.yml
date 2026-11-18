@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: fotozielnik
+  threads:
+    virtual:
+      enabled: true
+  jpa:
+    open-in-view: false          # no lazy loading in controllers/serialization
+    hibernate:
+      ddl-auto: validate         # schema is owned by Flyway (src/main/resources/db/migration)
+  mvc:
+    problemdetails:
+      enabled: true
+  docker:
+    compose:
+      file: ../compose.yml       # `./gradlew bootRun` starts Postgres from the repo-root compose.yml
+      lifecycle-management: start-only
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    enabled: true                # off in the prod profile
+  swagger-ui:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

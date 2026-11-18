@@ -1,0 +1,133 @@
+# CI: the same tools agents and git hooks use locally (tools/*.sh), so a red build is reproducible on any machine.
+# ubuntu-latest has Docker, so Testcontainers (*IT) and bootRun's compose Postgres work as they do locally.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  JAVA_VERSION: "25"
+  NODE_VERSION: "24"
+
+jobs:
+  repo-lint:
+    name: Repo lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the migration check needs the base commit
+      - name: tools/lint-repo.sh
+        env:
+          # PR: compare with the target branch. Push: compare with the previous tip (absent on a new branch).
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: |
+          if [[ -n "$BASE" && ! "$BASE" =~ ^0+$ ]] && git rev-parse -q --verify "$BASE^{commit}" >/dev/null; then
+            tools/lint-repo.sh --base "$BASE"
+          else
+            tools/lint-repo.sh
+          fi
+
+  backend:
+    name: Backend (check + unit + integration tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Static check (compile, Error Prone, NullAway, Spotless)
+        run: tools/check.sh backend
+      - name: Tests (incl. *IT with Testcontainers)
+        run: tools/test.sh backend
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-reports
+          path: backend/build/reports/tests/
+          retention-days: 7
+
+  frontend:
+    name: Frontend (check + unit tests + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - name: Static check (typecheck, oxlint)
+        run: tools/check.sh frontend
+      - name: Tests (Vitest)
+        run: tools/test.sh frontend
+      - name: Production build
+        run: npm run build
+        working-directory: frontend
+
+  e2e:
+    name: End to end (API contract + Playwright + screenshot)
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: frontend
+      - name: Start the stack (Postgres via compose, Spring, Vite)
+        run: tools/dev.sh up
+      - name: API contract - committed frontend types match the backend
+        working-directory: frontend
+        run: |
+          npm run api:types
+          if ! git diff --exit-code -- src/api/schema.gen.ts; then
+            echo "::error file=frontend/src/api/schema.gen.ts::Generated API types are stale. Run 'npm run api:types' with the backend running and commit the result."
+            exit 1
+          fi
+      - name: Playwright tests
+        run: tools/test.sh e2e
+      - name: Screenshot of the home page
+        run: tools/look.sh / --name home
+      - name: Stop the stack
+        if: always()
+        run: tools/dev.sh down
+      - name: Upload Playwright report, screenshots and server logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+            captures/
+            logs/
+          if-no-files-found: ignore
+          retention-days: 7

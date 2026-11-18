@@ -1,0 +1,27 @@
+# LF everywhere (scripts run on Linux/macOS/Git Bash); Windows batch files stay CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+gradlew text eol=lf
+*.sh text eol=lf
+.githooks/* text eol=lf
+
+*.java diff=java
+*.kts  diff=kotlin
+*.md   diff=markdown
+
+# Binary
+*.jar  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf  binary
+
+# Generated - collapsed in GitHub diffs
+frontend/src/api/schema.gen.ts linguist-generated
+frontend/package-lock.json     linguist-generated

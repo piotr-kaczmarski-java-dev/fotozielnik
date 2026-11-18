@@ -1,0 +1,36 @@
+# ---- Backend (Gradle) ----
+backend/build/
+backend/.gradle/
+backend/out/
+backend/bin/
+.kotlin/
+
+# ---- Frontend: see frontend/.gitignore (node_modules, dist, test-results, playwright-report) ----
+
+# ---- Local runtime output (tools/dev.sh, tools/look.sh) ----
+/logs/
+/captures/
+
+# ---- Secrets: commit .env.example, never .env ----
+.env
+.env.*
+!.env.example
+
+# ---- IDEs ----
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.classpath
+.project
+.settings/
+.factorypath
+
+# ---- Claude Code: personal / runtime state ----
+.claude/settings.local.json
+.claude/state/
+CLAUDE.local.md
+
+# ---- OS ----
+.DS_Store
+Thumbs.db

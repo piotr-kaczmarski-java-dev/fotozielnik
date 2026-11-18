@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Repo lint on what is about to be committed: immutable Flyway migrations, secrets, generated files,
+# big files, conflict markers. ~1 s. Emergency bypass: git commit --no-verify
+# Enabled by: git config core.hooksPath .githooks   (tools/init-project.sh does this)
+root="$(git rev-parse --show-toplevel)"
+exec "$root/tools/lint-repo.sh" --staged

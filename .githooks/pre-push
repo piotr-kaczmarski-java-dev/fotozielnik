@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Static check (compile + Error Prone/NullAway + format + frontend typecheck/lint) and the fast tests
+# (no Docker), so broken code never reaches the remote. ~20-40 s. Bypass: git push --no-verify
+# Integration (*IT) and e2e tests are not run here - run tools/test.sh all before merging.
+root="$(git rev-parse --show-toplevel)"
+"$root/tools/check.sh"; c=$?
+case $c in
+    0) ;;
+    3) echo "pre-push: static check could not run (see above) - pushing anyway." ;;
+    *) echo "pre-push: check failed - fix it, or push with --no-verify." >&2; exit 1 ;;
+esac
+"$root/tools/test.sh" backend frontend --unit; t=$?
+case $t in
+    0) ;;
+    3) echo "pre-push: some tests could not run (see above) - pushing anyway." ;;
+    *) echo "pre-push: tests failed - fix them, or push with --no-verify." >&2; exit 1 ;;
+esac
