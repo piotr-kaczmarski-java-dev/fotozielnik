@@ -292,6 +292,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["session"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/csrf": {
         parameters: {
             query?: never;
@@ -482,6 +498,9 @@ export interface components {
             size: number;
             /** Format: int64 */
             totalItems: number;
+        };
+        SessionResponse: {
+            user?: components["schemas"]["MeResponse"];
         };
         CsrfToken: {
             parameterName?: string;
@@ -963,6 +982,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ImportBatchResponse"];
+                };
+            };
+        };
+    };
+    session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SessionResponse"];
                 };
             };
         };

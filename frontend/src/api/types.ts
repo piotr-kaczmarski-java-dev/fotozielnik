@@ -10,6 +10,7 @@ export type AppInfo = Schemas['AppInfo']
 
 // accounts (FR-001..FR-003)
 export type Me = Schemas['MeResponse']
+export type SessionResponse = Schemas['SessionResponse']
 export type Role = Me['role']
 export type LoginRequest = Schemas['LoginRequest']
 export type ChangePasswordRequest = Schemas['ChangePasswordRequest']

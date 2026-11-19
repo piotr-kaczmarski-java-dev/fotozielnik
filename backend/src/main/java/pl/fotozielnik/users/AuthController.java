@@ -6,7 +6,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -91,6 +93,20 @@ class AuthController {
             token.getToken(); // send the rotated CSRF cookie with this response
         }
         return users.me(CurrentUser.id(authentication));
+    }
+
+    /**
+     * The SPA asks this on start: 200 with the user or with null. Unlike {@code /api/me} it never answers 401,
+     * so a signed-out visit does not log a failed request in the browser console.
+     */
+    @GetMapping("/api/auth/session")
+    SessionResponse session(@Nullable Authentication authentication) {
+        if (authentication == null
+                || authentication instanceof AnonymousAuthenticationToken
+                || !authentication.isAuthenticated()) {
+            return new SessionResponse(null);
+        }
+        return new SessionResponse(users.me(CurrentUser.id(authentication)));
     }
 
     @GetMapping("/api/me")

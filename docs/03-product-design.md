@@ -94,6 +94,7 @@ M1; later milestones extend this table. Errors are `ProblemDetail` with a stable
 | GET | `/api/auth/csrf` | Sets the `XSRF-TOKEN` cookie if missing (204) | anyone | FR-001 |
 | POST | `/api/auth/login` | Sign in (JSON), starts session; returns the user. 401 `auth.bad-credentials`, 429 `auth.too-many-attempts` (+ `Retry-After`) | anyone | FR-001 |
 | POST | `/api/auth/logout` | Sign out (204) | user | FR-001 |
+| GET | `/api/auth/session` | Who is signed in: `{user}` or `{user: null}`, always 200 (the SPA's start-up call) | anyone | FR-001 |
 | GET | `/api/me` | Current user incl. `mustChangePassword` | user | FR-001 |
 | PUT | `/api/me/password` | Change own password; signs out the user's other sessions (204) | user | FR-002 |
 | GET/POST | `/api/admin/users` | List (paged) / create users with a temporary password | admin | FR-002 |

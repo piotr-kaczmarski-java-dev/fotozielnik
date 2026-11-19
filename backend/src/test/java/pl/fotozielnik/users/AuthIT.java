@@ -26,6 +26,22 @@ class AuthIT extends IntegrationTest {
     }
 
     @Test
+    void sessionEndpointAnswersSignedInAndSignedOutWithoutA401() {
+        var signedOut = anonymous().get("/api/auth/session");
+        assertThat(signedOut.status()).isEqualTo(200);
+        assertThat(signedOut.json().get("user").isNull()).isTrue();
+
+        String email = newUser();
+        ApiClient browser = signedInAs(email);
+        var signedIn = browser.get("/api/auth/session");
+        assertThat(signedIn.status()).isEqualTo(200);
+        assertThat(signedIn.json().get("user").get("email").asString()).isEqualTo(email);
+
+        browser.post("/api/auth/logout");
+        assertThat(browser.get("/api/auth/session").json().get("user").isNull()).isTrue();
+    }
+
+    @Test
     void emailIsCaseInsensitive() {
         String email = newUser();
         new ApiClient(port).login("  " + email.toUpperCase(java.util.Locale.ROOT) + " ", USER_PASSWORD);

@@ -43,7 +43,7 @@ describe('App', () => {
   it('sends signed-out users to the login page and shows a Polish error for a wrong password', async () => {
     document.cookie = 'XSRF-TOKEN=t; path=/'
     serve({
-      'GET /api/me': () => json({ status: 401 }, 401),
+      'GET /api/auth/session': () => json({ user: null }),
       'POST /api/auth/login': () =>
         json({ status: 401, code: 'auth.bad-credentials', detail: 'Wrong email or password.' }, 401),
     })
@@ -60,7 +60,7 @@ describe('App', () => {
   })
 
   it('forces a temporary password to be changed before anything else', async () => {
-    serve({ 'GET /api/me': () => json({ ...me, mustChangePassword: true }) })
+    serve({ 'GET /api/auth/session': () => json({ user: { ...me, mustChangePassword: true } }) })
     const router = renderAt('/import')
 
     expect(await screen.findByText(/To jest hasło tymczasowe/)).toBeTruthy()
@@ -70,7 +70,7 @@ describe('App', () => {
 
   it('shows an empty library with one clear next step', async () => {
     serve({
-      'GET /api/me': () => json(me),
+      'GET /api/auth/session': () => json({ user: me }),
       'GET /api/photos': () => json({ items: [], nextCursor: null }),
     })
     renderAt('/')
@@ -82,7 +82,7 @@ describe('App', () => {
 
   it('keeps non-admins out of the admin page', async () => {
     serve({
-      'GET /api/me': () => json(me),
+      'GET /api/auth/session': () => json({ user: me }),
       'GET /api/photos': () => json({ items: [], nextCursor: null }),
     })
     const router = renderAt('/admin/users')

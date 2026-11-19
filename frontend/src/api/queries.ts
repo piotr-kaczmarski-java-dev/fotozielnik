@@ -1,7 +1,7 @@
 // Server state via TanStack Query (ADR-0012). Query keys live here so invalidation stays consistent.
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ApiError, apiGet } from './client.ts'
-import type { Me } from './types.ts'
+import { apiGet } from './client.ts'
+import type { Me, SessionResponse } from './types.ts'
 
 export const keys = {
   me: ['me'] as const,
@@ -12,14 +12,9 @@ export const keys = {
   users: ['admin', 'users'] as const,
 }
 
-/** The signed-in user, or null when signed out (a 401 is an answer here, not an error). */
+/** The signed-in user, or null when signed out (asked via /api/auth/session, which never answers 401). */
 export async function fetchMe(): Promise<Me | null> {
-  try {
-    return await apiGet<Me>('/api/me')
-  } catch (e) {
-    if (e instanceof ApiError && e.status === 401) return null
-    throw e
-  }
+  return (await apiGet<SessionResponse>('/api/auth/session')).user ?? null
 }
 
 export function useMe() {

@@ -9,6 +9,5 @@ test('the app loads and shows the sign-in page, without console errors', async (
   await page.goto('/')
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole('heading', { name: 'Logowanie' })).toBeVisible()
-  // signed out, the app asks /api/me once and gets the expected 401; anything else is a real error
-  expect(errors.filter((e) => !e.includes('401'))).toEqual([])
+  expect(errors).toEqual([])
 })

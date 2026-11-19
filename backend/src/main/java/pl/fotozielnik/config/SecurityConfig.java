@@ -48,7 +48,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/csrf")
+                        .requestMatchers(HttpMethod.GET, "/api/auth/csrf", "/api/auth/session")
                         .permitAll()
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")

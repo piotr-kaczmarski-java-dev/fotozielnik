@@ -59,5 +59,5 @@ test('import a folder, see the photos, import it again without uploading anythin
   await expect(progress).toContainText('Pominięto 3')
   await expect(progress).not.toContainText('Przesłano')
 
-  expect(errors.filter((e) => !e.includes('401'))).toEqual([])
+  expect(errors).toEqual([])
 })
