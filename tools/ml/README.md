@@ -21,10 +21,18 @@ Disk: ~1 GB venv, 1.7 GB BioCLIP 2 weights (Hugging Face cache), 1.5 GB ONNX exp
 | Script | What it does |
 |---|---|
 | `fetch_inat.py` | Label set (all vascular plants observed in Poland on iNaturalist, with taxonomy + Polish names) and a test set of recent research-grade photos |
+| `identify.py <folders/files>` | **Quick look on any photos (no labels needed)**: top 5 species with Polish names + confidence, HTML report `data/identify.html` |
 | `make_testset.py <folder>` | Test set from **your own identified photos**: one subfolder per species, Latin or Polish name |
 | `evaluate.py` | Zero-shot top-1/3/5 + genus accuracy, kNN-on-confirmed-photos simulation, saves embeddings |
 | `export_onnx.py bioclip-2` | Image encoder -> ONNX fp32 + int8, preprocessing JSON for Java, check vs PyTorch |
 | `run_java.sh bioclip-2 image-int8 1` | Runs `java/OnnxSpike.java` (ONNX Runtime + preprocessing in plain Java), compares with PyTorch |
+
+## Quick look at your own photos
+
+```bash
+.venv/bin/python identify.py ~/Zdjęcia/rośliny/2024-05       # any folders or files
+xdg-open data/identify.html                                  # green >= 90 %, yellow review, red unknown
+```
 
 ## Testing on the father's photos (R1)
 
