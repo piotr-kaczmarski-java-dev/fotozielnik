@@ -1,0 +1,16 @@
+# Keep the build context small and free of local state/secrets.
+.git
+.github
+.claude
+.env
+**/.env
+logs
+captures
+docs
+**/node_modules
+frontend/dist
+frontend/test-results
+frontend/playwright-report
+backend/build
+backend/.gradle
+backend/src/main/resources/static
