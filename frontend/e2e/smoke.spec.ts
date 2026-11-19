@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test'
+import { watchConsole } from './support.ts'
 
-test('home page shows the backend is up, without console errors', async ({ page }) => {
-  const errors: string[] = []
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
-  page.on('pageerror', (e) => errors.push(e.message))
+test('the app loads and shows the sign-in page, without console errors', async ({ page, request }) => {
+  const errors = watchConsole(page)
+  const info = await request.get('/api/public/info')
+  expect(info.ok()).toBe(true)
 
   await page.goto('/')
-  await expect(page.getByTestId('backend-info')).toContainText('is up')
-  expect(errors).toEqual([])
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByRole('heading', { name: 'Logowanie' })).toBeVisible()
+  // signed out, the app asks /api/me once and gets the expected 401; anything else is a real error
+  expect(errors.filter((e) => !e.includes('401'))).toEqual([])
 })
