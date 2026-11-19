@@ -8,7 +8,7 @@ Status: DRAFT
 | See login page, sign in | yes | - | - |
 | Import, browse, edit **own** library | - | yes | yes (own library only) |
 | See another user's photos/observations | - | no | **no** (admins manage accounts, not content) |
-| Create users, reset passwords, deactivate users | - | - | yes |
+| Create users, reset passwords, deactivate and delete users | - | - | yes |
 
 Every library query is scoped to the signed-in user (`owner_id`); another user's ID returns 404.
 
@@ -99,6 +99,7 @@ M1; later milestones extend this table. Errors are `ProblemDetail` with a stable
 | GET/POST | `/api/admin/users` | List (paged) / create users with a temporary password | admin | FR-002 |
 | POST | `/api/admin/users/{id}/password-reset` | Set a temporary password; signs the user out everywhere | admin | FR-002 |
 | POST | `/api/admin/users/{id}/deactivate`, `/activate` | Lock/unlock an account (deactivation signs out; not oneself) | admin | FR-002 |
+| DELETE | `/api/admin/users/{id}` | Delete an account with all its photos: rows at once, stored objects by a retried job (204; not oneself) | admin | NFR-006 |
 | POST | `/api/imports` | Start an import batch (`label`, `filesFound`, `filesSkipped`) | user | FR-004 |
 | POST | `/api/imports/{id}/check` | Send up to 1000 hashes, get those not yet stored (the rest count as duplicates) | owner | FR-005, FR-006 |
 | PUT | `/api/imports/{id}/files/{sha256}` | Upload one file (raw body; `X-File-Path` URL-encoded, `X-File-Modified` epoch ms); server verifies hash + JPEG; 201 new / 200 duplicate | owner | FR-004 |

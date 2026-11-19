@@ -141,7 +141,11 @@
     "confirmDeactivate": "Zablokować konto {{email}}? Użytkownik zostanie wylogowany.",
     "you": "(Ty)",
     "empty": "Brak użytkowników.",
-    "confirmReset": "Ustawić nowe hasło tymczasowe dla {{email}}? Użytkownik zostanie wylogowany i przy następnym logowaniu użyje nowego hasła."
+    "confirmReset": "Ustawić nowe hasło tymczasowe dla {{email}}? Użytkownik zostanie wylogowany i przy następnym logowaniu użyje nowego hasła.",
+    "delete": "Usuń",
+    "confirmDelete": "Usunięcie konta {{email}} usunie też wszystkie zdjęcia tej osoby. Tego nie można cofnąć.\n\nAby potwierdzić, wpisz adres e-mail użytkownika:",
+    "deleteMismatch": "Wpisany adres się nie zgadza - konto nie zostało usunięte.",
+    "deleted": "Usunięto konto {{email}} razem ze zdjęciami."
   },
   "errors": {
     "generic": "Coś poszło nie tak. Spróbuj ponownie.",
@@ -156,7 +160,8 @@
     },
     "user": {
       "email-taken": "Użytkownik z tym adresem e-mail już istnieje.",
-      "cannot-deactivate-self": "Nie możesz zablokować własnego konta."
+      "cannot-deactivate-self": "Nie możesz zablokować własnego konta.",
+      "cannot-delete-self": "Nie możesz usunąć własnego konta."
     },
     "import": {
       "not-a-jpeg": "to nie jest zdjęcie JPEG",

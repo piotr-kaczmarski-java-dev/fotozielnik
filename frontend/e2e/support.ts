@@ -25,12 +25,12 @@ export interface TestUser {
   displayName: string
 }
 
-/** A new USER with a temporary password; `ready: true` also sets a permanent one (skips the forced change). */
-export async function createUser({ ready = false } = {}): Promise<TestUser> {
+/** A new user (USER by default) with a temporary password; `ready: true` also sets a permanent one (skips the forced change). */
+export async function createUser({ ready = false, role = 'USER' as 'USER' | 'ADMIN' } = {}): Promise<TestUser> {
   const admin = await apiSession(E2E_ADMIN.email, E2E_ADMIN.password)
   const user = { email: `e2e-${randomUUID()}@fotozielnik.test`, password: 'tymczasowe-1', displayName: 'Anna Testowa' }
   const created = await admin.post('/api/admin/users', {
-    data: { email: user.email, displayName: user.displayName, role: 'USER', temporaryPassword: user.password },
+    data: { email: user.email, displayName: user.displayName, role, temporaryPassword: user.password },
     headers: await admin.csrf(),
   })
   expect(created.status(), await created.text()).toBe(201)

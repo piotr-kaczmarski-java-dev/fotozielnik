@@ -41,7 +41,7 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 | NFR-003 | Capacity | Users / data | 10 users, 3 concurrent, 300k photos, 200 GB originals; one 30k-photo import processed overnight (< 8 h) on 4 vCPU | Proposed |
 | NFR-004 | Availability | Uptime, maintenance | Best effort (~99 %); restart-safe jobs; downtime for deploys acceptable | Proposed |
 | NFR-005 | Security | Authentication, authorization | Deny-by-default; every query scoped to the owner; passwords hashed (bcrypt/argon2); CSRF protection with cookies; HTTPS only in prod | In progress |
-| NFR-006 | Privacy | Personal data | GDPR: data in the EU; deleting a user deletes their photos, objects and rows; no third-party services receive photos | Proposed |
+| NFR-006 | Privacy | Personal data | GDPR: data in the EU; deleting a user deletes their photos, objects and rows (`UserDeletionIT`, `e2e/admin.spec.ts`); no third-party services receive photos | In progress |
 | NFR-007 | Compatibility | Browsers, devices | Last 2 versions of Chrome/Firefox/Edge/Safari; desktop >= 1024 px designed, >= 360 px usable | Proposed |
 | NFR-008 | Accessibility | Standard | WCAG 2.2 AA; base font >= 18 px; click targets >= 44 px; keyboard operable | Proposed |
 | NFR-009 | Localization | Languages | Polish at launch; all UI text in i18n files; species as Latin + Polish name | Proposed |
@@ -69,5 +69,6 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 ## Change history
 | Date | Change |
 |---|---|
+| 2026-11-19 | NFR-006: admin deletes a user with the whole library |
 | 2026-11-19 | FR-001..FR-009 done (API + UI + e2e); M1 left: VPS deploy, real archive, restore test |
 | 2026-11-18 | First draft from kickoff |

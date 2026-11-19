@@ -132,6 +132,13 @@ function UserRow({ user, isMe, onNotice }: { user: User; isMe: boolean; onNotice
       refresh()
     },
   })
+  const remove = useMutation({
+    mutationFn: () => apiSend('DELETE', `/api/admin/users/${user.id}`),
+    onSuccess: () => {
+      onNotice(t('admin.deleted', { email: user.email }))
+      refresh()
+    },
+  })
   const toggle = useMutation({
     mutationFn: () => apiSend<User>('POST', `/api/admin/users/${user.id}/${user.active ? 'deactivate' : 'activate'}`),
     onSuccess: refresh,
@@ -166,7 +173,24 @@ function UserRow({ user, isMe, onNotice }: { user: User; isMe: boolean; onNotice
             {user.active ? t('admin.deactivate') : t('admin.activate')}
           </button>
         )}
-        {(reset.isError || toggle.isError) && <ErrorMessage error={reset.error ?? toggle.error} />}
+        {!isMe && (
+          <button
+            type="button"
+            className="button danger"
+            disabled={remove.isPending}
+            onClick={() => {
+              const typed = window.prompt(t('admin.confirmDelete', { email: user.email }))
+              if (typed === null) return
+              if (typed.trim().toLowerCase() === user.email) remove.mutate()
+              else window.alert(t('admin.deleteMismatch'))
+            }}
+          >
+            {t('admin.delete')}
+          </button>
+        )}
+        {(reset.isError || toggle.isError || remove.isError) && (
+          <ErrorMessage error={reset.error ?? toggle.error ?? remove.error} />
+        )}
       </td>
     </tr>
   )

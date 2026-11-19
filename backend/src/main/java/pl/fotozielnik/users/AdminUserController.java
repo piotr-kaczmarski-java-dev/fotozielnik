@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,6 +50,13 @@ class AdminUserController {
     @PostMapping("/{id}/deactivate")
     UserResponse deactivate(@PathVariable UUID id, Authentication authentication) {
         return users.setActive(CurrentUser.id(authentication), id, false);
+    }
+
+    /** Deletes the account with all its photos (NFR-006). Irreversible; the UI asks to type the email first. */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void delete(@PathVariable UUID id, Authentication authentication) {
+        users.delete(CurrentUser.id(authentication), id);
     }
 
     @PostMapping("/{id}/activate")

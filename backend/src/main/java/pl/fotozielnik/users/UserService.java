@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.fotozielnik.jobs.JobQueue;
 import pl.fotozielnik.shared.BadRequestException;
 import pl.fotozielnik.shared.ConflictException;
 import pl.fotozielnik.shared.NotFoundException;
@@ -25,11 +26,13 @@ class UserService {
     private final AppUserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final SessionTerminator sessions;
+    private final JobQueue jobs;
 
-    UserService(AppUserRepository users, PasswordEncoder passwordEncoder, SessionTerminator sessions) {
+    UserService(AppUserRepository users, PasswordEncoder passwordEncoder, SessionTerminator sessions, JobQueue jobs) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.sessions = sessions;
+        this.jobs = jobs;
     }
 
     @Transactional(readOnly = true)
@@ -95,6 +98,24 @@ class UserService {
         }
         log.info("Admin {} set user {} active={}", adminId, userId, active);
         return UserResponse.of(user);
+    }
+
+    /**
+     * Deletes an account and its whole library (NFR-006): the database rows go at once (ON DELETE CASCADE from
+     * app_user: imports, photos, their jobs), the stored photo objects in a retried background job. The job has
+     * no owner on purpose, so the cascade does not delete it too.
+     */
+    @Transactional
+    void delete(UUID adminId, UUID userId) {
+        if (adminId.equals(userId)) {
+            throw new BadRequestException("user.cannot-delete-self", "You cannot delete your own account.");
+        }
+        AppUser user = find(userId);
+        sessions.terminateAll(userId, null);
+        users.delete(user);
+        jobs.enqueue(
+                UserObjectsCleanup.JOB_TYPE, null, new UserObjectsCleanup.Payload(userId), JobQueue.PRIORITY_NORMAL);
+        log.info("Admin {} deleted user {} and their library", adminId, userId);
     }
 
     /**

@@ -85,15 +85,23 @@ class PhotoProcessor implements JobHandler {
             blobs.put(StorageKeys.thumbnail(owner, sha), d.thumbnail(), d.contentType());
             blobs.put(StorageKeys.preview(owner, sha), d.preview(), d.contentType());
 
-            tx.executeWithoutResult(status -> photos.findById(photoId).ifPresent(p -> {
-                p.applyProcessing(exif, d.width(), d.height());
-                photos.saveAndFlush(p);
-                Double lat = exif.latitude();
-                Double lon = exif.longitude();
-                if (lat != null && lon != null) {
-                    photos.setLocation(photoId, lat, lon, "EXIF");
-                }
-            }));
+            Boolean stillThere = tx.execute(status -> photos.findById(photoId)
+                    .map(p -> {
+                        p.applyProcessing(exif, d.width(), d.height());
+                        photos.saveAndFlush(p);
+                        Double lat = exif.latitude();
+                        Double lon = exif.longitude();
+                        if (lat != null && lon != null) {
+                            photos.setLocation(photoId, lat, lon, "EXIF");
+                        }
+                        return true;
+                    })
+                    .orElse(false));
+            if (!Boolean.TRUE.equals(stillThere)) {
+                // deleted (e.g. its owner) while we worked: do not leave our derivatives behind
+                blobs.delete(StorageKeys.thumbnail(owner, sha));
+                blobs.delete(StorageKeys.preview(owner, sha));
+            }
         } finally {
             Files.deleteIfExists(tmp);
         }
