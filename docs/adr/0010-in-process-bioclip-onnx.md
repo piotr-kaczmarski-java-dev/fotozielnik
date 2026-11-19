@@ -58,3 +58,20 @@ vascular species with research-grade observations in Poland. Both models are MIT
 archive (many photos per plant, leaves/buds, poor light) will score lower - re-run `evaluate.py` on ~200 of
 his identified photos (`make_testset.py`) before M3 thresholds are set. Only common species were tested.
 Training-data overlap is unlikely (date filter) but not proven.
+
+### Harder test set (2026-11-19)
+1153 ordinary recent photos (newest first, not best-voted) of 165 species chosen across the whole list,
+including rare ones; same 2533 labels. BioCLIP 2:
+
+| Species (by number of observations in Poland) | Photos | Top-1 | Top-3 |
+|---|---|---|---|
+| ranks 1-300 | 250 | 0.93 | 0.98 |
+| ranks 301-1000 | 590 | 0.86 | 0.95 |
+| ranks 1001-2533 | 313 | 0.78 | 0.89 |
+| **all** | 1153 | **0.86** | **0.94** (genus top-1 0.93) |
+
+- Java + ONNX int8 gives the same: top-1 0.86, top-3 0.95.
+- Confidence >= 0.9: 58% of photos at 98.5% precision - still a safe auto-accept tier; 0.5-0.9 belongs in review.
+- Nearly all hard cases are siblings within a genus (Carex, Alchemilla, Orobanche, Anthoxanthum, Brassica):
+  the review UI should offer "genus only" (e.g. *Carex* sp.) when the top suggestions share a genus.
+- kNN on confirmed photos (cosine >= 0.8) lifts top-1 to 0.94 - the library gets better as the user confirms.

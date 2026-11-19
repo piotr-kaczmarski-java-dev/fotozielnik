@@ -60,6 +60,39 @@ def accuracy(scores, truth_idx, label_genus, truth_genus):
     return res
 
 
+def breakdown(scores, truth, manifest, labels):
+    order = torch.argsort(scores, dim=1, descending=True)[:, :3].tolist()
+    ranks = [m.get("commonness_rank", t + 1) for m, t in zip(manifest, truth)]
+    out = {"by_commonness": {}, "confidence": {}, "worst_species": []}
+    for lo, hi in ((1, 300), (301, 1000), (1001, 10**6)):
+        sel = [i for i, r in enumerate(ranks) if lo <= r <= hi]
+        if sel:
+            band = f"{lo}-{hi if hi < 10**6 else 'end'}"
+            top1 = np.mean([order[i][0] == truth[i] for i in sel])
+            top3 = np.mean([truth[i] in order[i] for i in sel])
+            out["by_commonness"][band] = {"photos": len(sel), "species": len({truth[i] for i in sel}),
+                                          "top1": float(top1), "top3": float(top3)}
+            print(f"    species ranked {band:9s}: {len(sel):4d} photos  top1 {top1:.2f}  top3 {top3:.2f}")
+    p = torch.softmax(scores * 100, dim=1)
+    conf, pred = p.max(dim=1)
+    ok = (pred == torch.tensor(truth)).numpy()
+    conf = conf.numpy()
+    for th in (0.9, 0.7, 0.5):
+        sel = conf >= th
+        out["confidence"][f">={th}"] = {"share": float(sel.mean()), "precision": float(ok[sel].mean()) if sel.any() else None}
+        print(f"    confidence >= {th}: {sel.mean():.0%} of photos, {ok[sel].mean():.1%} correct")
+    per = {}
+    for i, t in enumerate(truth):
+        per.setdefault(t, []).append(order[i][0] == t)
+    worst = sorted(per.items(), key=lambda kv: np.mean(kv[1]))[:10]
+    for t, hits in worst:
+        wrong = [labels[order[i][0]]["name"] for i in range(len(truth)) if truth[i] == t and order[i][0] != t]
+        common = max(set(wrong), key=wrong.count) if wrong else "-"
+        out["worst_species"].append({"species": labels[t]["name"], "top1": float(np.mean(hits)), "confused_with": common})
+        print(f"    worst: {labels[t]['name']:32s} top1 {np.mean(hits):.1f}  mostly taken for {common}")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", nargs="+", default=list(MODELS))
@@ -97,6 +130,10 @@ def main():
                 print(f"{name:10s} {style:17s} @{n:5d}: " + "  ".join(f"{k} {v:.2f}" for k, v in r.items()))
             if style == "taxonomic+common":
                 np.save(DATA / f"{name}-text-emb.npy", text.numpy())
+        # where does it fail? by how common the species is, confidence tiers (FR-015), worst species
+        text = torch.from_numpy(np.load(DATA / f"{name}-text-emb.npy"))
+        result["breakdown"] = breakdown(img @ text.T, truth, manifest, labels)
+
         # kNN simulation (FR-016): the user's confirmed photos = the other test photos (leave-one-out).
         # Rule: if the nearest confirmed photo is closer than tau, take its species, else zero-shot top-1.
         text = torch.from_numpy(np.load(DATA / f"{name}-text-emb.npy"))
