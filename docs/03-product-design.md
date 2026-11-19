@@ -118,6 +118,13 @@ M1; later milestones extend this table. Errors are `ProblemDetail` with a stable
 | Any job state change | in-app progress (polling) | owner | "Przetworzono 4 100 z 8 300 zdjęć" |
 
 ## Open design questions
+- Oversized originals (proposal 2026-11-19, waiting for the father's opinion): users often do not know why their
+  DSLR JPEGs weigh 5-10 MB. Option at import: "make photos smaller before sending" - recompress at slightly
+  lower quality and/or downscale (e.g. 3000 px) **in the browser**, so upload time also drops (~5x). EXIF (date, GPS,
+  camera) and orientation must be kept; dedup stays on the original's hash, so the server cannot verify the hash
+  of the bytes it receives - needs a second hash. Conflicts with "originals stored unchanged" (UC-01) when
+  enabled: the app is then a working library, the originals stay on the user's disk. Recognition needs only
+  224 px (ADR-0010), so it is unaffected either way.
 - Temporary password on account creation vs a one-time setup link shown to the admin (assumed: temporary password + forced change).
 - Library home: photos or observations once M2 exists (assumed: observations, with a photo view toggle).
 - Keyboard shortcuts for review (proposal: 1-3 accept suggestion, N name, U unknown, arrows move).

@@ -173,5 +173,12 @@
     "page": {
       "bad-cursor": "Nie udało się wczytać kolejnej strony."
     }
+  },
+  "theme": {
+    "title": "Wygląd",
+    "dark": "Ciemny",
+    "light": "Jasny",
+    "system": "Jak w systemie",
+    "hint": "Ciemne tło lepiej eksponuje zdjęcia. Ustawienie dotyczy tej przeglądarki."
   }
 }

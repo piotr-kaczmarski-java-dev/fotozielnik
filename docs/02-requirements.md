@@ -43,7 +43,7 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 | NFR-005 | Security | Authentication, authorization | Deny-by-default; every query scoped to the owner; passwords hashed (bcrypt/argon2); CSRF protection with cookies; HTTPS only in prod | In progress |
 | NFR-006 | Privacy | Personal data | GDPR: data in the EU; deleting a user deletes their photos, objects and rows (`UserDeletionIT`, `e2e/admin.spec.ts`); no third-party services receive photos | In progress |
 | NFR-007 | Compatibility | Browsers, devices | Last 2 versions of Chrome/Firefox/Edge/Safari; desktop >= 1024 px designed, >= 360 px usable | Proposed |
-| NFR-008 | Accessibility | Standard | WCAG 2.2 AA; base font >= 18 px; click targets >= 44 px; keyboard operable | Proposed |
+| NFR-008 | Accessibility | Standard | WCAG 2.2 AA; base font >= 18 px; click targets >= 44 px; keyboard operable; dark (default) and light theme, both AA (`e2e/theme.spec.ts`) | In progress |
 | NFR-009 | Localization | Languages | Polish at launch; all UI text in i18n files; species as Latin + Polish name | Proposed |
 | NFR-010 | Operability | Logs, metrics, backups | Structured logs, `/actuator/health`; nightly DB dump + object sync off-site, kept 14 days; restore tested once before MVP | Proposed |
 | NFR-011 | Quality | Automated tests | Unit/slice tests for all logic; *IT per feature; e2e per critical flow | Planned |

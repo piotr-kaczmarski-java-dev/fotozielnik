@@ -35,6 +35,8 @@ first users can start importing early and their real data tunes M2/M3.
 - M3: GBIF taxonomy loader, prototypes, classifier + kNN, review UI.
 
 ## Later
+- Import option "make photos smaller before sending" (recompress/downscale in the browser) - see open design
+  questions in 03-product-design; decide after asking the father.
 - M4 browsing; then phenology views, life lists, iNaturalist/GBIF export, sharing in groups
   (with sensitive-location blurring, FR-021), RAW support if requested, hosted/commercial version.
 

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { apiSend } from '../../api/client.ts'
 import { useMe, useSetMe } from '../../api/queries.ts'
 import type { ChangePasswordRequest } from '../../api/types.ts'
+import { applyTheme, storedTheme, type Theme } from '../../theme.ts'
 import { ErrorMessage } from '../../ui/ErrorMessage.tsx'
 
 /** Must match UserService.MIN_PASSWORD_LENGTH in the backend. */
@@ -57,6 +58,7 @@ export function AccountPage() {
           {t('password.forcedInfo')}
         </p>
       )}
+      {!forced && <ThemeChooser />}
       <form className="card form" onSubmit={submit}>
         {!forced && <h2>{t('password.title')}</h2>}
         <label>
@@ -109,5 +111,28 @@ export function AccountPage() {
         </button>
       </form>
     </div>
+  )
+}
+
+function ThemeChooser() {
+  const { t } = useTranslation()
+  const [theme, setTheme] = useState<Theme>(storedTheme)
+  const choose = (value: Theme) => {
+    setTheme(value)
+    applyTheme(value)
+  }
+  return (
+    <fieldset className="card choice" aria-describedby="theme-hint">
+      <legend>{t('theme.title')}</legend>
+      {(['dark', 'light', 'system'] as const).map((value) => (
+        <label key={value} className="radio">
+          <input type="radio" name="theme" value={value} checked={theme === value} onChange={() => choose(value)} />
+          {t(`theme.${value}`)}
+        </label>
+      ))}
+      <p id="theme-hint" className="hint">
+        {t('theme.hint')}
+      </p>
+    </fieldset>
   )
 }

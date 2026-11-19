@@ -90,6 +90,9 @@ frontend/src
 - `src/features/<feature>/` per area (auth, account, import, library, admin; later observations, review,
   taxonomy, map), `src/ui/` shared components (Layout, ErrorMessage), `src/i18n/pl.json` (all UI text),
   `src/routes.tsx` (screens), `src/api/queries.ts` (query keys, `useMe`).
+- Theme: tokens in `index.css`; `<html data-theme="dark|light|system">` (dark by default) set before first paint by
+  an inline script in `index.html`, chosen on "Moje konto" (`src/theme.ts`, stored per browser). Form fields use
+  `--control-border` (>= 3:1), decorative edges `--border`.
 - Errors: `ui/errors.ts` turns a ProblemDetail `code` into `errors.<code>` from pl.json. A 401 on any query sets
   the user to null, so an expired session lands on the login page.
 - Import: `features/import/runImport.ts` (React-free, unit-tested) = start batch -> hash in a Web Worker pool
