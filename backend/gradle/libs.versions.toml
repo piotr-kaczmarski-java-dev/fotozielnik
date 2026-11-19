@@ -8,8 +8,14 @@ errorprone = "2.52.0"
 nullaway = "0.14.4"
 palantir-java-format = "2.103.0"
 springdoc = "3.2.0"
+aws-sdk = "2.57.0"
+metadata-extractor = "2.22.0"
+twelvemonkeys = "3.15.3"
 
 [libraries]
+metadata-extractor = { module = "com.drewnoakes:metadata-extractor", version.ref = "metadata-extractor" }
+twelvemonkeys-imageio-jpeg = { module = "com.twelvemonkeys.imageio:imageio-jpeg", version.ref = "twelvemonkeys" }
+aws-sdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "aws-sdk" }
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }

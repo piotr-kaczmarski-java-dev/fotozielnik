@@ -1,8 +1,13 @@
 # Local development services. `./gradlew bootRun` starts these automatically (spring-boot-docker-compose);
-# tests use Testcontainers instead. Keep the Postgres image in sync with TestcontainersConfiguration.
+# tests use Testcontainers instead. Postgres is built from docker/postgres/Dockerfile (PostGIS + pgvector,
+# ADR-0008) - TestcontainersConfiguration builds the same file.
 services:
   postgres:
-    image: postgres:18-alpine
+    build: docker/postgres
+    image: fotozielnik/postgres:18
+    labels:
+      # custom image name, so tell Spring Boot which service connection this is
+      org.springframework.boot.service-connection: postgres
     environment:
       POSTGRES_DB: app
       POSTGRES_USER: app
@@ -10,7 +15,25 @@ services:
     ports:
       - "5432"                 # random host port; Spring Boot discovers it
     volumes:
-      - pgdata:/var/lib/postgresql
+      - pgdata-gis:/var/lib/postgresql
+
+  # S3-compatible object storage for photos (ADR-0007). Self-configures on first start: single-node layout,
+  # the access key below and the `photos` bucket. S3 endpoint http://localhost:3900, region `garage`.
+  garage:
+    build: docker/garage
+    image: fotozielnik/garage:2.2
+    environment:
+      # dev only - like the Postgres password above, never reuse outside this compose file
+      GARAGE_RPC_SECRET: "0000000000000000000000000000000000000000000000000000000000000001"
+      GARAGE_ACCESS_KEY_ID: GK000000000000000000000001
+      GARAGE_SECRET_ACCESS_KEY: "0000000000000000000000000000000000000000000000000000000000000002"
+      GARAGE_BUCKET: photos
+    ports:
+      - "127.0.0.1:3900:3900"  # fixed port: Spring Boot has no compose service connection for S3
+    volumes:
+      - garage:/var/lib/garage
 
 volumes:
-  pgdata:
+  # new name: the old `pgdata` volume was created by the Alpine image (different C library/collations)
+  pgdata-gis:
+  garage:
