@@ -36,9 +36,9 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 
 | ID | Category | Requirement | Target / budget | Status |
 |---|---|---|---|---|
-| NFR-001 | Performance | API latency | p95 < 500 ms for interactive reads at expected load; grid pages paginated | Proposed |
+| NFR-001 | Performance | API latency | p95 < 500 ms for interactive reads at expected load; grid pages paginated. Measured with 300k photos, 3 users: p95 <= 54 ms (`tools/perf`) | In progress |
 | NFR-002 | Performance | Frontend load | First screen < 3 s on desktop broadband; thumbnails lazy-loaded | Proposed |
-| NFR-003 | Capacity | Users / data | 10 users, 3 concurrent, 300k photos, 200 GB originals; one 30k-photo import processed overnight (< 8 h) on 4 vCPU | Proposed |
+| NFR-003 | Capacity | Users / data | 10 users, 3 concurrent, 300k photos, 200 GB originals; one 30k-photo import processed overnight (< 8 h) on 4 vCPU. Measured locally: 7.2 photos/s (24 MP, 3 workers), est. ~2.5 h for 30k on the VPS (`tools/perf`) | In progress |
 | NFR-004 | Availability | Uptime, maintenance | Best effort (~99 %); restart-safe jobs; downtime for deploys acceptable | Proposed |
 | NFR-005 | Security | Authentication, authorization | Deny-by-default; every query scoped to the owner; passwords hashed (bcrypt/argon2); CSRF protection with cookies; HTTPS only in prod | In progress |
 | NFR-006 | Privacy | Personal data | GDPR: data in the EU; deleting a user deletes their photos, objects and rows (`UserDeletionIT`, `e2e/admin.spec.ts`); no third-party services receive photos | In progress |
@@ -69,6 +69,7 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 ## Change history
 | Date | Change |
 |---|---|
+| 2026-11-19 | Load test: NFR-001/NFR-003 measured (tools/perf); V6 index for import progress |
 | 2026-11-19 | NFR-006: admin deletes a user with the whole library |
 | 2026-11-19 | FR-001..FR-009 done (API + UI + e2e); M1 left: VPS deploy, real archive, restore test |
 | 2026-11-18 | First draft from kickoff |

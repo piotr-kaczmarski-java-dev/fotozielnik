@@ -72,6 +72,12 @@ class DerivativesIT extends IntegrationTest {
         var progress = user.get("/api/imports/" + batch).json();
         assertThat(progress.get("processingDone").asInt()).isEqualTo(1);
         assertThat(progress.get("processingPending").asInt()).isZero();
+        var history = user.get("/api/imports").json().get("items").get(0);
+        assertThat(history.get("id").asString()).isEqualTo(batch);
+        assertThat(history.get("processingDone").asInt())
+                .as("history counts, one query for all batches")
+                .isEqualTo(1);
+        assertThat(history.get("processingPending").asInt()).isZero();
 
         // the grid now orders by the camera time and has dimensions for layout
         var cell = user.get("/api/photos").json().get("items").get(0);

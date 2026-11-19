@@ -139,6 +139,7 @@ repo-root `.env` (dev admin; template `.env.example`). Environments: local dev +
 | Integration | `@SpringBootTest` + Testcontainers Postgres | `*IT` | yes |
 | End to end | Playwright against its own stack: `bootTestRun` on :8081 (Testcontainers DB + S3, fixed e2e admin) + Vite :5174 | `frontend/e2e/*.spec.ts` | yes |
 | Visual check | `tools/look.sh` screenshot + console/network errors | `captures/` | yes |
+| Load | Seeded 300k-photo library, latency + upload/processing throughput on a throwaway stack | `tools/perf/` | yes |
 
 - Every feature: unit tests for rules, a slice test per controller, at least one `*IT` through the database.
 - HTTP-level ITs extend `IntegrationTest` (one shared context: Postgres + Garage containers, bootstrap admin) and

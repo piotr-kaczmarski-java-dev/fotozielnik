@@ -62,6 +62,21 @@ interface PhotoRepository extends JpaRepository<Photo, UUID> {
         String getSource();
     }
 
+    @Query("""
+            select p.importBatchId as batchId, p.processingState as state, count(p) as count from Photo p
+            where p.ownerId = :owner and p.importBatchId in :batches
+            group by p.importBatchId, p.processingState""")
+    List<BatchStateCount> countByStateForBatches(
+            @Param("owner") UUID ownerId, @Param("batches") java.util.Collection<UUID> batchIds);
+
+    interface BatchStateCount {
+        UUID getBatchId();
+
+        ProcessingState getState();
+
+        long getCount();
+    }
+
     interface StateCount {
         ProcessingState getState();
 

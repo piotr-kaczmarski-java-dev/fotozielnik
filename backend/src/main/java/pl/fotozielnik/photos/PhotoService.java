@@ -75,6 +75,20 @@ public class PhotoService {
         return counts;
     }
 
+    /** {@link #processingCounts} for several batches in one query (import history page). */
+    @Transactional(readOnly = true)
+    public Map<UUID, Map<ProcessingState, Long>> processingCounts(UUID ownerId, java.util.Collection<UUID> batchIds) {
+        Map<UUID, Map<ProcessingState, Long>> result = new java.util.HashMap<>();
+        if (batchIds.isEmpty()) {
+            return result;
+        }
+        for (var c : photos.countByStateForBatches(ownerId, batchIds)) {
+            result.computeIfAbsent(c.getBatchId(), id -> new EnumMap<>(ProcessingState.class))
+                    .put(c.getState(), c.getCount());
+        }
+        return result;
+    }
+
     @Transactional(readOnly = true)
     PhotoPage page(UUID ownerId, @Nullable String cursor, int size) {
         Limit limit = Limit.of(size + 1); // one extra row tells us whether there is a next page

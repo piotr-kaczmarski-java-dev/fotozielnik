@@ -143,9 +143,11 @@ class ImportService {
     ImportBatchPage list(UUID ownerId, int page, int size) {
         return execute(readTx, () -> {
             Page<ImportBatch> result = batches.findByOwnerIdOrderByCreatedAtDesc(ownerId, PageRequest.of(page, size));
-            // at most `size` batches per page, each a small grouped count query
+            var counts = photos.processingCounts(
+                    ownerId,
+                    result.getContent().stream().map(ImportBatch::getId).toList());
             var items = result.getContent().stream()
-                    .map(b -> toResponse(b, photos.processingCounts(ownerId, b.getId())))
+                    .map(b -> toResponse(b, counts.getOrDefault(b.getId(), Map.of())))
                     .toList();
             return new ImportBatchPage(items, page, size, result.getTotalElements());
         });
