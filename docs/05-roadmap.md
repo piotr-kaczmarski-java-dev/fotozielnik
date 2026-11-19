@@ -27,7 +27,8 @@ first users can start importing early and their real data tunes M2/M3.
   (folder picker/drop, hashing workers, parallel upload with retries, live progress), admin users, account;
   e2e `login.spec.ts`, `import.spec.ts` on an isolated stack.
 - Deploy to the VPS with HTTPS; import one real archive (~20 GB); benchmark processing (R2); restore once.
-- Time-boxed ML spike (R1): BioCLIP -> ONNX, Java inference on ~200 identified photos; record result.
+- ~~Time-boxed ML spike (R1)~~ (done 2026-11-19 on iNaturalist photos: BioCLIP 2 int8 in Java, top-3 0.98;
+  ADR-0010). Re-run on ~200 of the father's identified photos: `tools/ml/make_testset.py`.
 
 ## Next
 - M2: embeddings job, grouping, split/merge, camera clock offsets, GPS fill.
@@ -40,6 +41,7 @@ first users can start importing early and their real data tunes M2/M3.
 ## Change history
 | Date | Change |
 |---|---|
+| 2026-11-19 | ML spike: BioCLIP 2 int8 via ONNX in Java chosen (ADR-0010) |
 | 2026-11-19 | M1 backend, frontend and deploy files done; next: VPS + real archive |
 | 2026-11-18 | ADRs accepted; Postgres image done; M0 done |
 | 2026-11-18 | First draft from kickoff; MVP split into M1-M4 for a 5-10 h/week pace |

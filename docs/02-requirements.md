@@ -60,10 +60,10 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 ## Assumptions and risks
 | # | Assumption or risk | Impact | Mitigation |
 |---|---|---|---|
-| R1 | BioCLIP accuracy on Central European flora too low to be useful | High | Time-boxed spike early (export to ONNX, test on ~200 of the father's identified photos); kNN on confirmed IDs improves over time |
-| R2 | In-JVM image decoding/ML too slow or memory-hungry for overnight imports | Medium | Benchmark in M1 (thumbnails) and in the spike (ML); bounded worker pool; quantized model. First data point: ~0.4 s per 24 MP JPEG with subsampled ImageIO decoding (ADR-0013 amendment) |
+| R1 | BioCLIP accuracy on Central European flora too low to be useful | High -> Low/Medium | Spike done on iNaturalist photos: BioCLIP 2 top-1 0.93 / top-3 0.98 over 2533 Polish species, also via Java/ONNX int8 (ADR-0010 "Spike results"). Still to do: re-run on ~200 of the father's identified photos |
+| R2 | In-JVM image decoding/ML too slow or memory-hungry for overnight imports | Low | Measured: ~0.4 s per 24 MP JPEG for thumbnails (ADR-0013), 0.36 s per photo for BioCLIP 2 int8 in Java on one core (ADR-0010) -> ~4 h for 30k photos on 3 workers. Re-check on the VPS |
 | R3 | Browser upload of 20 GB is fragile (tab closed, sleep) | Medium | Per-file resume via hash check; clear progress and "continue" instructions |
-| R4 | Polish vernacular names incomplete in GBIF | Medium | Measure coverage; merge a Polish checklist if licence allows |
+| R4 | Polish vernacular names incomplete in GBIF | Medium | Measure coverage; merge a Polish checklist if licence allows. iNaturalist has Polish names for 100% of the 1000 most common species, 91% of all 2533 |
 | R5 | Scope creep vs 5-10 h/week | High | Milestones usable on their own; non-goals in 01-vision |
 
 ## Change history

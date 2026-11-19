@@ -28,3 +28,33 @@ European vascular plants. Embeddings are also useful for grouping (FR-010) and k
 ## Consequences
 - Offline tooling (Python allowed there) for export and prototypes; runtime stays pure JVM.
 - Early spike to confirm accuracy (R1) and CPU time (R2); BioCLIP vs BioCLIP 2 and model licences are open (Q2).
+
+## Spike results (2026-11-19, `tools/ml/`)
+Test set: 300 iNaturalist research-grade photos from Poland (60 of the 600 most-observed vascular species,
+5 photos each, observed after 2025-06-01 to stay clear of the models' training data). Label set: all 2533
+vascular species with research-grade observations in Poland. Both models are MIT-licensed (Q2, NFR-012).
+
+| Model | Labels | Top-1 | Top-3 | Genus top-1 |
+|---|---|---|---|---|
+| BioCLIP (ViT-B/16) | 2533 | 0.68 | 0.88 | 0.78 |
+| **BioCLIP 2 (ViT-L/14)** | 1000 | 0.96 | 0.99 | 0.98 |
+| **BioCLIP 2 (ViT-L/14)** | 2533 | 0.93 | 0.98 | 0.96 |
+
+- Prompt style hardly matters; "a photo of <kingdom..family> <species> with common name <English>" is used.
+- **Java + ONNX Runtime 1.31.1 works**: Java preprocessing (bicubic resize 224, center crop, CLIP mean/std)
+  gives the same accuracy as PyTorch (fp32 0.94/0.99, int8 0.94/0.98; embedding cosine to PyTorch 0.99 mean).
+- **int8 dynamic quantization**: 1.2 GB -> 0.3 GB, no accuracy loss on this set, 3x faster.
+  CPU, one thread (i5-13600KF): fp32 1.1 s, **int8 0.36 s per photo**; 4 threads int8 0.10 s.
+  With thumbnails (~0.4 s) and a slower VPS core, ~1.4 s per photo per worker: 30k photos in ~4 h on 3
+  workers (NFR-003 allows 8 h).
+- Confidence (softmax of logits x100) for FR-015: p >= 0.9 covers 67% of photos at 98.5% precision (auto-accept
+  candidate); p < 0.5 is 5% of photos at 60% correct (-> "unknown"/review).
+- kNN on confirmed photos (simulated with other test photos of the same species): nearest confirmed photo
+  with cosine >= 0.8 is right 99% of the time and lifts top-1 from 0.93 to 0.97.
+- Polish names on iNaturalist: 100% of the 1000 most common species, 91% of all 2533 (R4 looks small).
+
+**Decision:** BioCLIP 2, int8, image encoder in the JVM; preprocessing as in `tools/ml/java/OnnxSpike.java`.
+**Caveats:** iNaturalist photos sorted by votes are well framed and show one clear subject; the father's
+archive (many photos per plant, leaves/buds, poor light) will score lower - re-run `evaluate.py` on ~200 of
+his identified photos (`make_testset.py`) before M3 thresholds are set. Only common species were tested.
+Training-data overlap is unlikely (date filter) but not proven.
