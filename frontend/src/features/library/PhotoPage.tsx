@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { apiGet } from '../../api/client.ts'
 import { keys } from '../../api/queries.ts'
-import type { PhotoDetails } from '../../api/types.ts'
+import type { PhotoDetails, TrashInfo } from '../../api/types.ts'
 import { ErrorMessage, Loading } from '../../ui/ErrorMessage.tsx'
-import { formatBytes, formatDateTime, wallClock } from './dates.ts'
+import { formatBytes, formatDateTime, formatDay, wallClock } from './dates.ts'
+import type { TrashedState } from './LibraryPage.tsx'
+import { useTrashMutation } from './trash.ts'
 
 /** Large preview + what we know about one photo (FR-009). */
 export function PhotoPage() {
@@ -31,6 +33,14 @@ export function PhotoPage() {
 
 function PhotoView({ photo }: { photo: PhotoDetails }) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const trash = useTrashMutation('trash')
+  const restore = useTrashMutation('restore')
+  const trashInfo = useQuery({ queryKey: keys.trashInfo, queryFn: () => apiGet<TrashInfo>('/api/photos/trash/info') })
+  const purgeDate =
+    photo.deletedAt != null && trashInfo.data
+      ? formatDay(new Date(new Date(photo.deletedAt).getTime() + trashInfo.data.retentionDays * 86_400_000))
+      : null
   const name = photo.originalPath.split('/').at(-1) ?? photo.originalPath
   const taken = photo.takenAtLocal != null ? formatDateTime(wallClock(photo.takenAtLocal)) : null
   const camera = [photo.cameraMake, photo.cameraModel].filter((v) => v != null).join(' ')
@@ -38,6 +48,19 @@ function PhotoView({ photo }: { photo: PhotoDetails }) {
   return (
     <>
       <h1 className="visually-hidden">{taken ?? name}</h1>
+      {photo.deletedAt != null && (
+        <div role="status" className="alert alert-info notice">
+          <span>{t('photo.inTrash', { date: purgeDate ?? '…' })}</span>
+          <button
+            type="button"
+            className="button secondary"
+            disabled={restore.isPending}
+            onClick={() => restore.mutate([photo.id])}
+          >
+            {t('photo.restore')}
+          </button>
+        </div>
+      )}
       <figure className="preview">
         {photo.thumbnailReady ? (
           <img src={`/api/photos/${photo.id}/preview`} alt={taken ? t('library.photoAlt', { date: taken }) : name} />
@@ -93,9 +116,26 @@ function PhotoView({ photo }: { photo: PhotoDetails }) {
         <dt>{t('photo.file')}</dt>
         <dd className="path">{photo.originalPath}</dd>
       </dl>
-      <a className="button secondary" href={`/api/photos/${photo.id}/original`} download={name}>
-        {t('photo.original')}
-      </a>
+      <div className="actions">
+        <a className="button secondary" href={`/api/photos/${photo.id}/original`} download={name}>
+          {t('photo.original')}
+        </a>
+        {photo.deletedAt == null && (
+          <button
+            type="button"
+            className="button danger"
+            disabled={trash.isPending}
+            onClick={() =>
+              trash.mutate([photo.id], {
+                onSuccess: () => void navigate('/', { state: { trashed: [photo.id] } satisfies TrashedState }),
+              })
+            }
+          >
+            {t('photo.toTrash')}
+          </button>
+        )}
+      </div>
+      {(trash.isError || restore.isError) && <ErrorMessage error={trash.error ?? restore.error} />}
     </>
   )
 }

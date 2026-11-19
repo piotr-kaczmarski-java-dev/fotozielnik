@@ -36,6 +36,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/photos/trash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["trash"];
+        put?: never;
+        post: operations["moveToTrash"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/photos/trash/empty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["emptyTrash"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/photos/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/imports": {
         parameters: {
             query?: never;
@@ -260,6 +308,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/photos/trash/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["trashInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/me": {
         parameters: {
             query?: never;
@@ -352,6 +416,15 @@ export interface components {
             /** Format: uuid */
             photoId: string;
             created: boolean;
+        };
+        PhotoIdsRequest: {
+            ids: string[];
+        };
+        TrashResponse: {
+            /** Format: int32 */
+            changed: number;
+            /** Format: int64 */
+            inTrash: number;
         };
         StartImportRequest: {
             label: string;
@@ -452,6 +525,8 @@ export interface components {
             /** @enum {string} */
             processingState: "PENDING" | "DONE" | "FAILED";
             thumbnailReady: boolean;
+            /** Format: date-time */
+            deletedAt?: string;
         };
         PhotoDetails: {
             /** Format: uuid */
@@ -482,6 +557,8 @@ export interface components {
             importBatchId?: string;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            deletedAt?: string;
         };
         PhotoLocation: {
             /** Format: double */
@@ -489,6 +566,12 @@ export interface components {
             /** Format: double */
             longitude: number;
             source: string;
+        };
+        TrashInfo: {
+            /** Format: int64 */
+            count: number;
+            /** Format: int32 */
+            retentionDays: number;
         };
         ImportBatchPage: {
             items: components["schemas"]["ImportBatchResponse"][];
@@ -573,6 +656,97 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UploadResponse"];
+                };
+            };
+        };
+    };
+    trash: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PhotoPage"];
+                };
+            };
+        };
+    };
+    moveToTrash: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoIdsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrashResponse"];
+                };
+            };
+        };
+    };
+    emptyTrash: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrashResponse"];
+                };
+            };
+        };
+    };
+    restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhotoIdsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrashResponse"];
                 };
             };
         };
@@ -940,6 +1114,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": string;
+                };
+            };
+        };
+    };
+    trashInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrashInfo"];
                 };
             };
         };

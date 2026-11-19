@@ -49,7 +49,9 @@ Package by feature: `<base>.<feature>` holds everything for one area of the doma
 - Image PostgreSQL 18 + PostGIS + pgvector, built from `docker/postgres/Dockerfile`; the same image in
   compose and Testcontainers (ADR-0008).
 - Primary keys: `uuid` (UUIDv7, generated in the app) for user data; GBIF integer keys for `taxon`.
-  `created_at`/`updated_at` on user-data tables. No soft delete except `photo.deleted_at` (trash, assumed).
+  `created_at`/`updated_at` on user-data tables. No soft delete except `photo.deleted_at` (trash, FR-022): the grid
+  filters it out; `TrashPurger` (job `PURGE_TRASH`, nightly + "empty trash") deletes the row first, then the
+  objects; `deleted_at = epoch` marks photos whose purge is under way (gone from the trash, not restorable).
 - **Ownership:** every library table has `owner_id`; repository methods take the owner and filter by it.
 - Locations: `geography(Point,4326)`, written and read with **native SQL** in the repository (not mapped on the
   entity; no hibernate-spatial - map/cluster queries are SQL anyway). Embeddings: `vector(N)` per model with

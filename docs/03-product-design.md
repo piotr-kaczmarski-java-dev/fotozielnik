@@ -76,6 +76,7 @@ step ("Nie masz jeszcze zdjęć - Dodaj zdjęcia").
 | Library | `/` | Photos (M1) / observations (M2+) by date, infinite grid | UC-02, UC-04 |
 | Photo | `/photos/:id` | Large preview, EXIF, location | UC-01 |
 | Import | `/import` | Choose folder, progress of upload and processing, history | UC-01 |
+| Trash | `/trash` | Photos deleted in the last 30 days: restore, empty | FR-022 |
 | Observation | `/observations/:id` | Photos, species, split/merge | UC-02, UC-03 |
 | Review queue | `/review` | Bulk identification | UC-03 |
 | Taxonomy | `/taxa`, `/taxa/:id` | Tree and species pages | UC-04 |
@@ -107,6 +108,9 @@ M1; later milestones extend this table. Errors are `ProblemDetail` with a stable
 | POST | `/api/imports/{id}/finish` | Browser is done sending; processing continues | owner | FR-004 |
 | GET | `/api/imports`, `/api/imports/{id}` | History and progress (upload counters + processing pending/done/failed) | owner | FR-008 |
 | GET | `/api/photos?cursor=&size=` | Date-ordered page of own photos (keyset cursor, `nextCursor` null on the last page) | owner | FR-009 |
+| POST | `/api/photos/trash`, `/api/photos/restore` | Move up to 500 photos to / back from the trash (`{ids}`; other users' ids are ignored) | owner | FR-022 |
+| GET | `/api/photos/trash?cursor=&size=`, `/api/photos/trash/info` | Trash, newest deleted first; count + retention days | owner | FR-022 |
+| POST | `/api/photos/trash/empty` | Empty the trash: photos leave it at once, files and rows are purged in the background (202) | owner | FR-022 |
 | GET | `/api/photos/{id}` | Photo details incl. EXIF and location | owner | FR-009 |
 | GET | `/api/photos/{id}/thumb`, `/preview`, `/original` | Image bytes, streamed from storage through the app (`Cache-Control: private`, ETag = hash, 304); thumb/preview 404 until processed | owner | FR-008, FR-009 |
 
@@ -132,5 +136,6 @@ M1; later milestones extend this table. Errors are `ProblemDetail` with a stable
 ## Change history
 | Date | Change |
 |---|---|
+| 2026-11-19 | Trash (FR-022): API, screen; grid has a selection mode |
 | 2026-11-19 | API table updated to the implemented M1 backend |
 | 2026-11-18 | First draft from kickoff |

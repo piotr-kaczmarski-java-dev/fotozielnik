@@ -32,3 +32,8 @@ export type PhotoSummary = Schemas['PhotoSummary']
 export type PhotoPage = Schemas['PhotoPage']
 export type PhotoDetails = Schemas['PhotoDetails']
 export type ProcessingState = PhotoSummary['processingState']
+
+// trash (FR-022)
+export type PhotoIdsRequest = Schemas['PhotoIdsRequest']
+export type TrashResponse = Schemas['TrashResponse']
+export type TrashInfo = Schemas['TrashInfo']

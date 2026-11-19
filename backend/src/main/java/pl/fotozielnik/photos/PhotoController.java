@@ -1,5 +1,6 @@
 package pl.fotozielnik.photos;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.io.IOException;
@@ -10,13 +11,17 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import pl.fotozielnik.photos.PhotoService.ImageKind;
@@ -44,6 +49,38 @@ class PhotoController {
             @RequestParam(defaultValue = "60") @Min(1) @Max(200) int size,
             Authentication auth) {
         return photos.page(CurrentUser.id(auth), cursor, size);
+    }
+
+    // ---- trash (FR-022)
+
+    @PostMapping("/trash")
+    TrashResponse moveToTrash(@Valid @RequestBody PhotoIdsRequest body, Authentication auth) {
+        return photos.moveToTrash(CurrentUser.id(auth), body.ids());
+    }
+
+    @PostMapping("/restore")
+    TrashResponse restore(@Valid @RequestBody PhotoIdsRequest body, Authentication auth) {
+        return photos.restore(CurrentUser.id(auth), body.ids());
+    }
+
+    @GetMapping("/trash")
+    PhotoPage trash(
+            @RequestParam(required = false) @Nullable String cursor,
+            @RequestParam(defaultValue = "60") @Min(1) @Max(200) int size,
+            Authentication auth) {
+        return photos.trashPage(CurrentUser.id(auth), cursor, size);
+    }
+
+    @GetMapping("/trash/info")
+    TrashInfo trashInfo(Authentication auth) {
+        return photos.trashInfo(CurrentUser.id(auth));
+    }
+
+    /** Removes everything in the trash for good, in the background (202). */
+    @PostMapping("/trash/empty")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    TrashResponse emptyTrash(Authentication auth) {
+        return photos.emptyTrash(CurrentUser.id(auth));
     }
 
     @GetMapping("/{id}")

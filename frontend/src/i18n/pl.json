@@ -8,7 +8,8 @@
     "admin": "Użytkownicy",
     "account": "Moje konto",
     "logout": "Wyloguj",
-    "main": "Menu główne"
+    "main": "Menu główne",
+    "trash": "Kosz"
   },
   "common": {
     "loading": "Wczytywanie…",
@@ -57,7 +58,22 @@
     "failed": "Błąd pliku",
     "noDate": "Bez daty",
     "photoAlt": "Zdjęcie z {{date}}",
-    "photoAltNoDate": "Zdjęcie {{name}}"
+    "photoAltNoDate": "Zdjęcie {{name}}",
+    "select": "Zaznacz",
+    "cancelSelect": "Anuluj zaznaczanie",
+    "selected_one": "Zaznaczono {{count}} zdjęcie",
+    "selected_few": "Zaznaczono {{count}} zdjęcia",
+    "selected_many": "Zaznaczono {{count}} zdjęć",
+    "selected_other": "Zaznaczono {{count}} zdjęcia",
+    "toTrash": "Przenieś do kosza",
+    "trashLink": "Kosz ({{count}})",
+    "selectHint": "Kliknij zdjęcia, które chcesz zaznaczyć.",
+    "trashed_one": "Przeniesiono {{count}} zdjęcie do kosza.",
+    "trashed_few": "Przeniesiono {{count}} zdjęcia do kosza.",
+    "trashed_many": "Przeniesiono {{count}} zdjęć do kosza.",
+    "trashed_other": "Przeniesiono {{count}} zdjęcia do kosza.",
+    "undo": "Cofnij",
+    "restoredBack": "Przywrócono zdjęcia."
   },
   "photo": {
     "title": "Zdjęcie",
@@ -74,7 +90,10 @@
     "original": "Pobierz oryginał",
     "processing": "Zdjęcie jest jeszcze przetwarzane. Podgląd pojawi się za chwilę.",
     "failed": "Nie udało się przygotować podglądu tego pliku: {{reason}}",
-    "megapixels": "{{w}} × {{h}} px"
+    "megapixels": "{{w}} × {{h}} px",
+    "toTrash": "Przenieś do kosza",
+    "inTrash": "To zdjęcie jest w koszu. Zostanie usunięte na stałe {{date}}.",
+    "restore": "Przywróć zdjęcie"
   },
   "import": {
     "title": "Dodaj zdjęcia",
@@ -180,5 +199,27 @@
     "light": "Jasny",
     "system": "Jak w systemie",
     "hint": "Ciemne tło lepiej eksponuje zdjęcia. Ustawienie dotyczy tej przeglądarki."
+  },
+  "trash": {
+    "title": "Kosz",
+    "info": "Zdjęcia z kosza są usuwane na stałe po {{days}} dniach. Do tego czasu możesz je przywrócić.",
+    "empty": "Kosz jest pusty.",
+    "back": "Wróć do biblioteki",
+    "restoreSelected": "Przywróć zaznaczone",
+    "emptyTrash": "Opróżnij kosz",
+    "confirmEmpty_one": "Usunąć na stałe {{count}} zdjęcie z kosza? Tego nie można cofnąć.",
+    "confirmEmpty_few": "Usunąć na stałe {{count}} zdjęcia z kosza? Tego nie można cofnąć.",
+    "confirmEmpty_many": "Usunąć na stałe {{count}} zdjęć z kosza? Tego nie można cofnąć.",
+    "confirmEmpty_other": "Usunąć na stałe {{count}} zdjęcia z kosza? Tego nie można cofnąć.",
+    "emptied": "Kosz został opróżniony.",
+    "restored_one": "Przywrócono {{count}} zdjęcie do biblioteki.",
+    "restored_few": "Przywrócono {{count}} zdjęcia do biblioteki.",
+    "restored_many": "Przywrócono {{count}} zdjęć do biblioteki.",
+    "restored_other": "Przywrócono {{count}} zdjęcia do biblioteki.",
+    "daysLeft_one": "jeszcze {{count}} dzień",
+    "daysLeft_few": "jeszcze {{count}} dni",
+    "daysLeft_many": "jeszcze {{count}} dni",
+    "daysLeft_other": "jeszcze {{count}} dnia",
+    "selectHint": "Kliknij zdjęcia, które chcesz przywrócić."
   }
 }

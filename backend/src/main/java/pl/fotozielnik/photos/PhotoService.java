@@ -25,11 +25,16 @@ public class PhotoService {
     private final PhotoRepository photos;
     private final BlobStore blobs;
     private final JobQueue jobs;
+    private final PhotoProperties properties;
+    private final TrashPurger purger;
 
-    PhotoService(PhotoRepository photos, BlobStore blobs, JobQueue jobs) {
+    PhotoService(
+            PhotoRepository photos, BlobStore blobs, JobQueue jobs, PhotoProperties properties, TrashPurger purger) {
         this.photos = photos;
         this.blobs = blobs;
         this.jobs = jobs;
+        this.properties = properties;
+        this.purger = purger;
     }
 
     /** Result of {@link #register}: the photo id and whether it was new (false = duplicate of an existing one). */
@@ -49,6 +54,7 @@ public class PhotoService {
             @Nullable Instant fileModifiedAt) {
         var existing = photos.findExistingHashes(ownerId, List.of(sha256));
         if (!existing.isEmpty()) {
+            photos.restoreByHashes(ownerId, List.of(sha256), Instant.now()); // uploaded again: out of the trash
             return new Registered(findIdByHash(ownerId, sha256), false);
         }
         Photo photo = photos.save(new Photo(ownerId, importBatchId, sha256, sizeBytes, originalPath, fileModifiedAt));
@@ -58,10 +64,17 @@ public class PhotoService {
         return new Registered(photo.getId(), true);
     }
 
-    /** Which of these hashes the user's library already holds (dedup, FR-005). */
-    @Transactional(readOnly = true)
+    /**
+     * Which of these hashes the user's library already holds (dedup, FR-005). Photos among them that are in the
+     * trash are restored: importing a photo again means the user wants it.
+     */
+    @Transactional
     public List<String> existingHashes(UUID ownerId, List<String> sha256s) {
-        return sha256s.isEmpty() ? List.of() : photos.findExistingHashes(ownerId, sha256s);
+        if (sha256s.isEmpty()) {
+            return List.of();
+        }
+        photos.restoreByHashes(ownerId, sha256s, Instant.now());
+        return photos.findExistingHashes(ownerId, sha256s);
     }
 
     /** Processing progress of the photos of one import batch (FR-008). */
@@ -107,6 +120,65 @@ public class PhotoService {
             next = new PageCursor(last.getSortTime(), last.getId()).encode();
         }
         return new PhotoPage(page.stream().map(PhotoSummary::of).toList(), next);
+    }
+
+    // ---- trash (FR-022)
+
+    /**
+     * deleted_at of photos whose purge is under way ("Opróżnij kosz"): no longer in the trash, not restorable,
+     * picked up by {@link TrashPurger}. Real trash entries are always later than this.
+     */
+    static final Instant PURGING = Instant.EPOCH;
+
+    @Transactional
+    TrashResponse moveToTrash(UUID ownerId, List<UUID> ids) {
+        int changed = photos.moveToTrash(ownerId, ids, Instant.now());
+        return new TrashResponse(changed, photos.countByOwnerIdAndDeletedAtAfter(ownerId, PURGING));
+    }
+
+    @Transactional
+    TrashResponse restore(UUID ownerId, List<UUID> ids) {
+        int changed = photos.restore(ownerId, ids, Instant.now(), PURGING);
+        return new TrashResponse(changed, photos.countByOwnerIdAndDeletedAtAfter(ownerId, PURGING));
+    }
+
+    @Transactional(readOnly = true)
+    TrashInfo trashInfo(UUID ownerId) {
+        return new TrashInfo(photos.countByOwnerIdAndDeletedAtAfter(ownerId, PURGING), (int)
+                properties.trashRetention().toDays());
+    }
+
+    @Transactional(readOnly = true)
+    PhotoPage trashPage(UUID ownerId, @Nullable String cursor, int size) {
+        Limit limit = Limit.of(size + 1);
+        List<Photo> rows;
+        if (cursor == null) {
+            rows = photos.findTrashFirstPage(ownerId, PURGING, limit);
+        } else {
+            PageCursor c = PageCursor.decode(cursor);
+            rows = photos.findTrashPageAfter(ownerId, c.sortTime(), c.id(), PURGING, limit);
+        }
+        boolean hasMore = rows.size() > size;
+        List<Photo> page = hasMore ? rows.subList(0, size) : rows;
+        String next = null;
+        if (hasMore) {
+            Photo last = page.getLast();
+            next = new PageCursor(java.util.Objects.requireNonNull(last.getDeletedAt()), last.getId()).encode();
+        }
+        return new PhotoPage(page.stream().map(PhotoSummary::of).toList(), next);
+    }
+
+    /**
+     * Empties the user's trash: the photos leave the trash at once (marked {@link #PURGING}), files and rows are
+     * removed in the background. Returns how many photos it held.
+     */
+    @Transactional
+    TrashResponse emptyTrash(UUID ownerId) {
+        int count = photos.markForPurge(ownerId, Instant.now(), PURGING);
+        if (count > 0) {
+            purger.enqueue(ownerId, PURGING.plusSeconds(1));
+        }
+        return new TrashResponse(count, 0);
     }
 
     @Transactional(readOnly = true)

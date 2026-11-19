@@ -24,7 +24,8 @@ record PhotoDetails(
         @Nullable String processingError,
         boolean thumbnailReady,
         @Nullable UUID importBatchId,
-        Instant createdAt) {
+        Instant createdAt,
+        @Nullable Instant deletedAt) {
 
     /** WGS84 degrees. {@code source}: EXIF (from the camera), INFERRED (from nearby photos), MANUAL. */
     record PhotoLocation(double latitude, double longitude, String source) {}
@@ -48,6 +49,7 @@ record PhotoDetails(
                 p.getProcessingError(),
                 p.hasDerivatives(),
                 p.getImportBatchId(),
-                p.getCreatedAt());
+                p.getCreatedAt(),
+                p.getDeletedAt());
     }
 }

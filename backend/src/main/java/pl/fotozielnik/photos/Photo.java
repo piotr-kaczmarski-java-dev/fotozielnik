@@ -86,6 +86,9 @@ class Photo {
     private boolean hasDerivatives;
 
     @Column
+    private @Nullable Instant deletedAt;
+
+    @Column
     private Instant createdAt;
 
     @Column
@@ -246,6 +249,11 @@ class Photo {
 
     boolean hasDerivatives() {
         return hasDerivatives;
+    }
+
+    @Nullable
+    Instant getDeletedAt() {
+        return deletedAt;
     }
 
     Instant getCreatedAt() {

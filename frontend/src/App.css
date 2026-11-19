@@ -259,6 +259,96 @@ label.radio input {
   margin: 1.5rem auto;
 }
 
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.page-header .actions {
+  margin-top: 0;
+}
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+/* ---- selection (library, trash) ---- */
+button.tile {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.tile {
+  position: relative;
+}
+.tile.selectable img {
+  transition: opacity 0.1s;
+}
+.tile.selected {
+  outline: 5px solid var(--primary);
+  outline-offset: -5px;
+}
+.tile.selected img {
+  opacity: 0.75;
+}
+.tile-check {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgb(0 0 0 / 0.35);
+  color: var(--on-primary);
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.75rem;
+  text-align: center;
+}
+.tile.selected .tile-check {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.tile-badge {
+  position: absolute;
+  bottom: 0.3rem;
+  left: 0.3rem;
+  right: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.with-selection-bar {
+  padding-bottom: 6rem;
+}
+.selection-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-top: 2px solid var(--control-border);
+  z-index: 10;
+}
+
 /* ---- photo page ---- */
 .photo-page .back {
   padding-left: 0;

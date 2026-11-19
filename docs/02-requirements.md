@@ -31,6 +31,7 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 | FR-019 | Browse observations on a map (clustered) and by date | Must | M4 | Proposed | `e2e/map.spec.ts` |
 | FR-020 | Taxonomy backbone from GBIF (vascular plants, Central Europe) with Polish vernacular names | Must | M3 | Proposed | Loader test on a sample file |
 | FR-021 | Taxa carry a sensitivity level (protected / red-listed); used to blur locations when sharing exists | Could | Later | Proposed | Owner always sees exact coordinates |
+| FR-022 | A user deletes photos to a trash (from the grid with multi-select, or the photo page), can undo/restore them for 30 days (configurable), can empty the trash; then files and rows are removed. Re-importing a trashed photo restores it | Should | M1 | Done | `PhotoTrashIT`, `e2e/trash.spec.ts` |
 
 ## Non-functional requirements
 
@@ -69,6 +70,7 @@ Milestones: M1 accounts + import, M2 observations, M3 identification, M4 browsin
 ## Change history
 | Date | Change |
 |---|---|
+| 2026-11-19 | FR-022 trash added and done (asked for before the first real import) |
 | 2026-11-19 | Load test: NFR-001/NFR-003 measured (tools/perf); V6 index for import progress |
 | 2026-11-19 | NFR-006: admin deletes a user with the whole library |
 | 2026-11-19 | FR-001..FR-009 done (API + UI + e2e); M1 left: VPS deploy, real archive, restore test |

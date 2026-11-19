@@ -13,7 +13,8 @@ record PhotoSummary(
         @Nullable Integer width,
         @Nullable Integer height,
         ProcessingState processingState,
-        boolean thumbnailReady) {
+        boolean thumbnailReady,
+        @Nullable Instant deletedAt) {
 
     static PhotoSummary of(Photo p) {
         return new PhotoSummary(
@@ -23,6 +24,7 @@ record PhotoSummary(
                 p.getWidth(),
                 p.getHeight(),
                 p.getProcessingState(),
-                p.hasDerivatives());
+                p.hasDerivatives(),
+                p.getDeletedAt());
     }
 }

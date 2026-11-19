@@ -10,6 +10,8 @@ export const keys = {
   imports: ['imports'] as const,
   importBatch: (id: string) => ['imports', id] as const,
   users: ['admin', 'users'] as const,
+  trash: ['trash'] as const,
+  trashInfo: ['trash', 'info'] as const,
 }
 
 /** The signed-in user, or null when signed out (asked via /api/auth/session, which never answers 401). */
