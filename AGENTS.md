@@ -5,8 +5,9 @@ Humans: this is also the fastest onboarding doc. Keep it short, current and true
 
 ## Project
 
-- **What:** {{ONE_LINE_PITCH}} (see `docs/01-vision.md`)
-- **Stack:** Spring Boot 4 / Java 25 / Gradle Kotlin DSL (`backend/`), PostgreSQL + Flyway,
+- **What:** Self-hosted photo library that turns wild-plant photo archives into identified observations (see `docs/01-vision.md`)
+- **Stack:** Spring Boot 4 / Java 25 / Gradle Kotlin DSL (`backend/`), PostgreSQL (PostGIS, pgvector) + Flyway,
+  S3 (Garage) for photos, ONNX Runtime in-process for species ID,
   Vite + React + TypeScript (`frontend/`), Playwright. Versions: `backend/gradle/libs.versions.toml`,
   `backend/build.gradle.kts`, `frontend/package.json`.
 - **Current milestone:** see "Now" in `docs/05-roadmap.md`.
@@ -33,11 +34,14 @@ backend/                              Spring Boot app (own Gradle wrapper: cd ba
   src/main/java/<base package>/       Application, config/, shared/, one package per feature
   src/main/resources/application.yml  config; `prod` profile at the bottom
   src/main/resources/db/migration/    Flyway migrations V<n>__<desc>.sql - immutable once committed
-  src/test/java/...                   *Test (no Docker), *IT (Testcontainers Postgres)
+  src/test/java/...                   *Test (no Docker), *IT (Testcontainers Postgres + Garage); HTTP ITs extend
+                                      IntegrationTest and use ApiClient (cookies + CSRF like a browser)
 frontend/                             Vite + React + TS
   src/api/                            client.ts (fetch + ProblemDetail), schema.gen.ts (GENERATED), types.ts
   e2e/                                Playwright tests (*.spec.ts) + look.mjs (screenshot tool)
-compose.yml                           local Postgres, started automatically by bootRun
+compose.yml                           local Postgres + Garage (S3), started automatically by bootRun
+.env.example                          dev admin login; copied to .env (gitignored) by tools/dev.sh
+Dockerfile, deploy/                   production image + compose (Caddy, app, Postgres, Garage), backups - deploy/README.md
 docs/                                 vision, requirements, product design, architecture, roadmap, ADRs
 tools/                                check, test, look, dev, lint-repo, init-project (bash)
 .githooks/                            pre-commit repo lint, pre-push check + unit tests
@@ -50,9 +54,9 @@ tools/                                check, test, look, dev, lint-repo, init-pr
 | Purpose | Command | Notes |
 |---|---|---|
 | Static check (seconds) | `tools/check.sh [backend\|frontend] [--fix]` | Java compile + Error Prone/NullAway + Spotless; TS typecheck + oxlint. Runs automatically after each turn. `--fix` formats Java. |
-| Tests | `tools/test.sh [backend\|frontend\|e2e\|all] [--unit] [--filter <pattern>]` | Default backend + frontend. `--unit` skips `*IT` (no Docker). `e2e` starts the stack if needed. |
+| Tests | `tools/test.sh [backend\|frontend\|e2e\|all] [--unit] [--filter <pattern>]` | Default backend + frontend. `--unit` skips `*IT` (no Docker). `e2e` runs on its own stack (Spring :8081 with fresh Testcontainers DB, Vite :5174), never on dev data; create users with `e2e/support.ts`. |
 | Look at a page | `tools/look.sh [/path] [--name shot] [--mobile] [--eval '<js>'] [--wait <css>]` | Screenshot to `captures/<shot>.png` + console errors + HTTP >= 400. **Read the PNG.** |
-| Dev stack | `tools/dev.sh up\|down\|status\|logs [backend\|frontend]` | Spring :8080 (+ compose Postgres), Vite :5173. Logs in `logs/`. |
+| Dev stack | `tools/dev.sh up\|down\|status\|logs [backend\|frontend]` | Spring :8080 (+ compose Postgres/Garage), Vite :5173. Logs in `logs/`. Dev sign-in: `ADMIN_EMAIL` / `ADMIN_INITIAL_PASSWORD` from `.env`. |
 | Regenerate API types | `cd frontend && npm run api:types` | Backend must be running. After any controller/DTO change. |
 | Repo lint (~1 s) | `tools/lint-repo.sh [--staged \| --base <ref>]` | Immutable migrations, secrets, generated files, big files, conflict markers. `--base origin/main` checks a whole branch. |
 | Single backend test | `tools/test.sh backend --filter '*OrderServiceTest'` | Gradle `--tests` pattern. |

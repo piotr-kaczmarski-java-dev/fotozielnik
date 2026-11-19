@@ -1,6 +1,6 @@
 # Architecture - fotozielnik.pl
 
-Status: TEMPLATE
+Status: DRAFT
 
 Sections marked _(template baseline)_ are already decided by the project template (ADR-0001..0004);
 review them during kickoff. The rest is project-specific.
@@ -10,7 +10,9 @@ review them during kickoff. The rest is project-specific.
 ```
 dev:   browser -> Vite :5173 --/api, /actuator--> Spring Boot :8080 -> PostgreSQL (compose.yml, random port)
 test:  JUnit -> Spring context -> PostgreSQL (Testcontainers)      Playwright -> Vite -> Spring
-prod:  (project-specific - see "Deployment")
+prod:  browser -> Caddy (HTTPS) -> Spring Boot (API + built frontend) -> PostgreSQL (PostGIS, pgvector)
+                                                                    -> Garage / any S3 (originals, thumbnails)
+       background: job workers inside the same JVM (imports, EXIF, thumbnails, ML) - see "Deployment"
 ```
 
 Same-origin in dev (Vite proxy), so Spring needs no CORS configuration.
@@ -44,7 +46,16 @@ Package by feature: `<base>.<feature>` holds everything for one area of the doma
 - PostgreSQL. **Flyway owns the schema** (`backend/src/main/resources/db/migration`); Hibernate only
   validates it (`ddl-auto: validate`). Committed migrations are immutable.
 - `spring.jpa.open-in-view: false`: load what a response needs inside the service (fetch joins, DTO projections).
-- Primary keys, auditing columns, soft delete: _(project-specific - decide in the first feature, ADR)_.
+- Image PostgreSQL 18 + PostGIS + pgvector, built from `docker/postgres/Dockerfile`; the same image in
+  compose and Testcontainers (ADR-0008).
+- Primary keys: `uuid` (UUIDv7, generated in the app) for user data; GBIF integer keys for `taxon`.
+  `created_at`/`updated_at` on user-data tables. No soft delete except `photo.deleted_at` (trash, assumed).
+- **Ownership:** every library table has `owner_id`; repository methods take the owner and filter by it.
+- Locations: `geography(Point,4326)`, written and read with **native SQL** in the repository (not mapped on the
+  entity; no hibernate-spatial - map/cluster queries are SQL anyway). Embeddings: `vector(N)` per model with
+  HNSW index. Name autocomplete: `pg_trgm`.
+- Counters updated concurrently (import batch) use atomic SQL increments + `@DynamicUpdate`, not entity writes.
+- Photo bytes never go into Postgres: object storage behind a `BlobStore` interface (ADR-0007).
 
 ## API _(template baseline)_
 
@@ -59,8 +70,9 @@ Package by feature: `<base>.<feature>` holds everything for one area of the doma
 
 - Deny by default (`config/SecurityConfig`): every new public route is listed there deliberately.
 - Unauthenticated API calls get 401 (no login redirects).
-- Stateless, CSRF off - valid only while there are no auth cookies.
-- **Authentication mechanism:** _(project-specific - decided at kickoff, ADR required; revisit CSRF then)_.
+- **Authentication mechanism:** email + password, server-side session cookie (Spring Session JDBC),
+  CSRF on with a cookie token read by the SPA; accounts created only by admins; first admin from env vars
+  (ADR-0005). Image endpoints are authorised like any other API call (no public URLs to objects).
 
 ## Frontend structure _(template baseline)_
 
@@ -73,15 +85,50 @@ frontend/src
 ```
 
 - Vite + React + TypeScript (strict). oxlint. Vitest + Testing Library for components, Playwright for e2e.
-- Routing, server-state library, UI kit/CSS approach: _(project-specific, decided at kickoff)_.
+- React Router, TanStack Query, i18next (Polish), MapLibre GL (M4), `hash-wasm` in a Web Worker for upload
+  hashing; plain CSS with design tokens, no UI kit (ADR-0012). Large type (>= 18 px), targets >= 44 px.
+- `src/features/<feature>/` per area (auth, account, import, library, admin; later observations, review,
+  taxonomy, map), `src/ui/` shared components (Layout, ErrorMessage), `src/i18n/pl.json` (all UI text),
+  `src/routes.tsx` (screens), `src/api/queries.ts` (query keys, `useMe`).
+- Errors: `ui/errors.ts` turns a ProblemDetail `code` into `errors.<code>` from pl.json. A 401 on any query sets
+  the user to null, so an expired session lands on the login page.
+- Import: `features/import/runImport.ts` (React-free, unit-tested) = start batch -> hash in a Web Worker pool
+  (`hasher.ts`, `hashWorker.ts`, streaming hash-wasm) -> check in chunks of 200 -> 3 parallel uploads with
+  retries -> finish.
 
 ## Feature modules _(project-specific)_
+Base package `pl.fotozielnik`.
+
 | Feature package | Responsibility | Key types | Tables |
 |---|---|---|---|
+| `users` | Accounts, login, admin bootstrap, password change/reset | AppUser, UserService, AuthController, AdminUserController | app_user, spring_session* |
+| `storage` | Object storage abstraction | BlobStore, S3BlobStore, StorageProperties | - |
+| `jobs` | Postgres job queue, workers, retries, progress | Job, JobQueue, JobWorker, JobHandler | job |
+| `imports` | Import batches, hash check, upload, batch progress | ImportBatch, ImportService, ImportController | import_batch |
+| `photos` | Photo records, EXIF, thumbnails/previews, image streaming, GPS fill, camera clocks | Photo, ExifReader, DerivativeGenerator, PhotoController | photo, camera_clock |
+| `observations` (M2) | Grouping, split/merge, browse by date/map | Observation, ObservationGrouper | observation |
+| `identification` (M2/M3) | ONNX embedder, classifier, kNN, suggestions, review queue | ImageEmbedder, SpeciesClassifier, KnnMatcher | ml_model, photo_embedding, id_suggestion |
+| `taxonomy` (M3) | Taxa, names, autocomplete, tree, sensitivity, GBIF loader | Taxon, TaxonService, GbifBackboneLoader | taxon, taxon_name, taxon_prototype |
+
+Processing pipeline (all background jobs, idempotent, restartable; `jobs` feature: `JobQueue.enqueue` joins the
+caller's transaction, `JobWorkers` = fixed pool of cores - 1 threads, retries with backoff, `PermanentJobFailure`
+for hopeless input):
+
+```
+upload -> PROCESS_PHOTO (EXIF, thumb 400 px + preview 2048 px as JPEG, upright; M2+: embedding)
+       -> when the batch is fully processed: GROUP_OBSERVATIONS -> INFER_GPS -> IDENTIFY (M3)
+```
 
 ## Deployment _(project-specific)_
-_Where it runs, how the frontend is served (from the Spring jar or separately), how migrations run,
-secrets, backups, environments._
+ADR-0006. One EU VPS (~4 vCPU, 16 GB RAM, extra volume for photos) running `deploy/compose.yml`
+(runbook: `deploy/README.md`; image: root `Dockerfile`; `SpaConfig` serves the SPA with deep-link fallback):
+Caddy (automatic HTTPS) + app image + Postgres image + Garage (S3). The app image is built in multi-stage
+Docker: the Vite build is copied into the Spring jar's static resources, so there is one deployable.
+Flyway runs on app start. Secrets via `.env` on the server (`.env.example` in the repo). ML model file is
+downloaded to a volume on first start and verified by SHA-256 (ADR-0010).
+Backups: `deploy/backup.sh` - nightly `pg_dump` + `rclone sync` of the bucket to an off-site rclone remote, kept
+14 days (`mc` was dropped with MinIO); `deploy/restore.sh`; restore tested before M1 ends. Local dev reads the
+repo-root `.env` (dev admin; template `.env.example`). Environments: local dev + production only.
 
 ## Testing strategy _(template baseline)_
 
@@ -90,10 +137,14 @@ secrets, backups, environments._
 | Unit | JUnit 5 + AssertJ / Vitest | `backend/src/test/...*Test`, `frontend/src/**/*.test.tsx` | no |
 | Web slice | `@WebMvcTest` + MockMvc (import `SecurityConfig`) | `*ControllerTest` | no |
 | Integration | `@SpringBootTest` + Testcontainers Postgres | `*IT` | yes |
-| End to end | Playwright against the running stack | `frontend/e2e/*.spec.ts` | yes |
+| End to end | Playwright against its own stack: `bootTestRun` on :8081 (Testcontainers DB + S3, fixed e2e admin) + Vite :5174 | `frontend/e2e/*.spec.ts` | yes |
 | Visual check | `tools/look.sh` screenshot + console/network errors | `captures/` | yes |
 
 - Every feature: unit tests for rules, a slice test per controller, at least one `*IT` through the database.
+- HTTP-level ITs extend `IntegrationTest` (one shared context: Postgres + Garage containers, bootstrap admin) and
+  talk to the app with `ApiClient`, a cookie-keeping client that sends the CSRF header like the browser.
+  Each test creates its own users (`newUser()`). Background workers are off in tests; `runJobs()` drains the
+  queue synchronously. Test JPEGs are generated (`TestImages`), with real EXIF where needed (`ExifJpeg`).
 - Every critical user flow: one e2e test.
 - Static analysis on every compile: Error Prone + NullAway (errors), Spotless format (ADR-0003).
 
@@ -107,7 +158,18 @@ secrets, backups, environments._
 | Testcontainers | Real Postgres in tests | template |
 | Vite, React, TypeScript, oxlint, Vitest, Testing Library, Playwright | Frontend + tests | template |
 | openapi-typescript (via npx, pinned in `package.json`) | Types from the OpenAPI spec | template |
+| Spring Session JDBC | Sessions survive restarts (ADR-0005) | M1 |
+| AWS SDK v2 S3 (2.57, sync Apache client); Garage server image (`docker/garage`) | Object storage (ADR-0007) | M1 |
+| metadata-extractor 2.22 | EXIF reading | M1 |
+| TwelveMonkeys imageio-jpeg 3.15 | JPEG decoding for derivatives (ADR-0013 fallback, in use until libvips) | M1 |
+| libvips via vips-ffm | Faster thumbnails (ADR-0013) - after the M1 benchmark | M1 (planned) |
+| Hibernate vector module | pgvector types | M2 (planned) |
+| ONNX Runtime (Java) | In-process BioCLIP inference (ADR-0010) | M2 (planned) |
+| React Router, TanStack Query, i18next, hash-wasm, MapLibre GL | Frontend (ADR-0012) | M1 / M4 (planned) |
 
 ## Change history
 | Date | Change |
 |---|---|
+| 2026-11-19 | M1 backend: users/storage/jobs/imports/photos; native SQL for geography; ImageIO JPEG derivatives; deploy/ |
+| 2026-11-18 | Postgres image (`docker/postgres`) + V2 extensions; Garage replaces MinIO (archived) |
+| 2026-11-18 | Kickoff: feature modules, data, auth, storage, jobs, ML, deployment (ADR-0005..0013) |
