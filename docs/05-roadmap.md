@@ -28,8 +28,10 @@ first users can start importing early and their real data tunes M2/M3.
   e2e `login.spec.ts`, `import.spec.ts` on an isolated stack.
 - ~~Deploy to the VPS with HTTPS~~ (done 2026-11-22: Hetzner Cloud, Helsinki, lean start 2 vCPU / 4 GB +
   50 GB volume, temporary sslip.io hostname until the domain is bought).
-- Off-site backups (`backup.sh` + rclone remote) before the real archive; import one real archive (~20 GB);
-  benchmark processing on the small server (R2); restore once.
+- Import one real archive (~20 GB); benchmark processing on the small server (R2).
+- Off-site backups (`backup.sh` + rclone remote, e.g. B2 EU or own PC) and one restore: postponed while the
+  server only holds copies of the father's originals (Hetzner server backups cover DB + `.env`, not the
+  volume). **Must be done before users enter data that exists only on the server (M2 edits, M3 confirmations).**
 - ~~Time-boxed ML spike (R1)~~ (done 2026-11-19 on iNaturalist photos: BioCLIP 2 int8 in Java, top-3 0.98;
   ADR-0010). ~~Re-run on the father's identified photos~~ (done 2026-11-22: 416 photos from Facebook, top-1 0.82,
   top-3 0.92; ADR-0010).
