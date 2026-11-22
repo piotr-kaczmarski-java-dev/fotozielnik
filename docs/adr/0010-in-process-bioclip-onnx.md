@@ -75,3 +75,22 @@ including rare ones; same 2533 labels. BioCLIP 2:
 - Nearly all hard cases are siblings within a genus (Carex, Alchemilla, Orobanche, Anthoxanthum, Brassica):
   the review UI should offer "genus only" (e.g. *Carex* sp.) when the top suggestions share a genus.
 - kNN on confirmed photos (cosine >= 0.8) lifts top-1 to 0.94 - the library gets better as the user confirms.
+
+### The father's own photos (2026-11-22)
+416 of his photos with species names taken from his Facebook captions (`tools/ml/facebook_export.py`), each
+looked at (landscapes, other main subject, multi-species and near-duplicates removed; his names not yet
+re-checked by him). 234 species, most of them less common ones; same 2533 labels. BioCLIP 2, PyTorch:
+
+| Set | Photos | Top-1 | Top-3 | Genus top-1 |
+|---|---|---|---|---|
+| all | 416 | **0.82** | **0.92** | 0.93 |
+| species ranks 1-300 / 301-1000 / 1001+ | 59 / 220 / 137 | 0.83 / 0.85 / 0.74 | 0.95 / 0.94 / 0.88 | |
+
+- Confidence >= 0.9: 54% of photos at 98.2% precision - the auto-accept tier holds on real archive photos.
+  0.7-0.9 is ~19% of photos at ~85%; < 0.5 is 12% (unknown/review).
+- kNN, species with >= 2 photos (275 photos, 93 species): top-1 0.82 -> **0.91** at cosine >= 0.8 (kNN right 94%),
+  0.85 at >= 0.9 (right 99%). Same-day shots of one plant make this optimistic.
+- kNN on all 416 (141 species with a single photo): at cosine 0.6-0.7 kNN *lowers* top-1 to 0.59, because a
+  photo of a not-yet-confirmed species matches a confirmed look-alike. **kNN must not override a confident
+  zero-shot answer with a weak neighbour; use cosine >= 0.8-0.9 and only for species the user has confirmed.**
+- Errors are again siblings (Allium, Carex, Calamagrostis, Poa, Pyrola, Peucedanum) - supports "genus only".

@@ -125,7 +125,9 @@ upload -> PROCESS_PHOTO (EXIF, thumb 400 px + preview 2048 px as JPEG, upright; 
 ```
 
 ## Deployment _(project-specific)_
-ADR-0006. One EU VPS (~4 vCPU, 16 GB RAM, extra volume for photos) running `deploy/compose.yml`
+ADR-0006. One EU VPS (target ~4 vCPU, 16 GB RAM, extra volume for photos; while there is a single user it runs
+on 2 vCPU / 4 GB with `APP_MEMORY=2g`, `JOB_WORKERS=1` and 4 GB swap for builds, rescaled CPU/RAM-only when
+needed - M3 likely needs 8 GB) running `deploy/compose.yml`
 (runbook: `deploy/README.md`; image: root `Dockerfile`; `SpaConfig` serves the SPA with deep-link fallback):
 Caddy (automatic HTTPS) + app image + Postgres image + Garage (S3). The app image is built in multi-stage
 Docker: the Vite build is copied into the Spring jar's static resources, so there is one deployable.

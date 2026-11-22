@@ -23,6 +23,7 @@ Disk: ~1 GB venv, 1.7 GB BioCLIP 2 weights (Hugging Face cache), 1.5 GB ONNX exp
 | `fetch_inat.py` | Label set (all vascular plants observed in Poland on iNaturalist, with taxonomy + Polish names) and a test set of recent research-grade photos |
 | `identify.py <folders/files>` | **Quick look on any photos (no labels needed)**: top 5 species with Polish names + confidence, HTML report `data/identify.html` |
 | `report_pdf.py` | The identify report as a small self-contained HTML + A4 PDF (photos resized to 1000 px) - for e-mail/print |
+| `facebook_export.py <export.zip> <out>` | Photos + species names from a Facebook data export (captions, post text, album names; Polish inflection and abbreviations like "O. mniejszy"): one folder per species + `photos.csv` for review |
 | `make_testset.py <folder>` | Test set from **your own identified photos**: one subfolder per species, Latin or Polish name |
 | `evaluate.py` | Zero-shot top-1/3/5 + genus accuracy, kNN-on-confirmed-photos simulation, saves embeddings |
 | `export_onnx.py bioclip-2` | Image encoder -> ONNX fp32 + int8, preprocessing JSON for Java, check vs PyTorch |
