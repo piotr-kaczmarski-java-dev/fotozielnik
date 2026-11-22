@@ -1,5 +1,465 @@
-main {
-  max-width: 48rem;
-  margin: 4rem auto;
+/* ---- layout ---- */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary);
+}
+.topbar nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex: 1;
+}
+.topbar nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
+  padding: 0 0.9rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+}
+.topbar nav a:hover {
+  background: var(--bg);
+}
+.topbar nav a.active {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+.narrow {
+  max-width: 32rem;
+  margin: 2rem auto;
   padding: 0 1rem;
+}
+.brand-title {
+  text-align: center;
+  color: var(--primary);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ---- forms and buttons ---- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.form h2 {
+  margin: 0;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+input,
+select {
+  font: inherit;
+  min-height: var(--target);
+  padding: 0.4rem 0.7rem;
+  border: 2px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+input:focus,
+select:focus {
+  border-color: var(--primary);
+}
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+}
+.choice legend {
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 0 0.3rem;
+}
+.choice .hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+label.radio {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--target);
+  font-weight: 600;
+  cursor: pointer;
+}
+label.radio input {
+  width: 1.4rem;
+  height: 1.4rem;
+  min-height: 0;
+  accent-color: var(--primary);
+}
+.inline {
+  display: flex;
+  gap: 0.5rem;
+}
+.inline input {
+  flex: 1;
+  font-family: ui-monospace, monospace;
+}
+.button {
+  font: inherit;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target);
+  padding: 0.4rem 1.1rem;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+.button.primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.button.primary:hover {
+  background: var(--primary-hover);
+}
+.button.secondary {
+  background: var(--surface);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.button.danger {
+  background: var(--surface);
+  color: var(--error);
+  border-color: var(--error);
+}
+.button.link {
+  background: none;
+  color: var(--primary);
+  text-decoration: underline;
+}
+.button.large {
+  font-size: 1.15rem;
+  min-height: 56px;
+  padding: 0.6rem 1.6rem;
+}
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.hint,
+.muted {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ---- messages ---- */
+.alert {
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+}
+.alert p {
+  margin: 0 0 0.5rem;
+}
+.alert p:last-child {
+  margin-bottom: 0;
+}
+.alert-error {
+  background: var(--error-bg);
+  color: var(--error);
+}
+.alert-info {
+  background: var(--info-bg);
+  color: var(--info);
+}
+.alert-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.loading {
+  color: var(--muted);
+}
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+.big {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* ---- library grid ---- */
+.month-heading {
+  margin: 1.5rem 0 0.5rem;
+}
+.photo-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.4rem;
+}
+.tile {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--border);
+}
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tile-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.tile-placeholder.failed {
+  color: var(--error);
+}
+.more {
+  display: flex;
+  margin: 1.5rem auto;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.page-header .actions {
+  margin-top: 0;
+}
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+/* ---- selection (library, trash) ---- */
+button.tile {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.tile {
+  position: relative;
+}
+.tile.selectable img {
+  transition: opacity 0.1s;
+}
+.tile.selected {
+  outline: 5px solid var(--primary);
+  outline-offset: -5px;
+}
+.tile.selected img {
+  opacity: 0.75;
+}
+.tile-check {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.4rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgb(0 0 0 / 0.35);
+  color: var(--on-primary);
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.75rem;
+  text-align: center;
+}
+.tile.selected .tile-check {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.tile-badge {
+  position: absolute;
+  bottom: 0.3rem;
+  left: 0.3rem;
+  right: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.65);
+  color: #fff;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.with-selection-bar {
+  padding-bottom: 6rem;
+}
+.selection-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-top: 2px solid var(--control-border);
+  z-index: 10;
+}
+
+/* ---- photo page ---- */
+.photo-page .back {
+  padding-left: 0;
+}
+.preview {
+  margin: 0.5rem 0 1rem;
+}
+.preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  margin: 0 auto;
+  border-radius: 6px;
+}
+.details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.details dt {
+  font-weight: 600;
+}
+.details dd {
+  margin: 0;
+}
+.path {
+  word-break: break-all;
+}
+
+/* ---- import ---- */
+.dropzone {
+  text-align: center;
+  border: 3px dashed var(--border);
+  padding: 2rem 1rem;
+}
+.dropzone.dragging {
+  border-color: var(--primary);
+  background: var(--success-bg);
+}
+progress {
+  width: 100%;
+  height: 1.5rem;
+  accent-color: var(--primary);
+}
+.file-list {
+  max-height: 14rem;
+  overflow: auto;
+  font-size: 0.9rem;
+}
+summary {
+  cursor: pointer;
+  min-height: var(--target);
+  display: inline-flex;
+  align-items: center;
+}
+.history-list {
+  list-style: none;
+  padding: 0;
+}
+.history-list li {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---- admin ---- */
+.users {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+.users th,
+.users td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (max-width: 40rem) {
+  /* brand + sign-out on the first row, the big navigation buttons on their own row below */
+  .topbar {
+    justify-content: space-between;
+  }
+  .topbar nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .content {
+    padding: 0.75rem;
+  }
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: 0.25rem;
+  }
+  .users thead {
+    display: none;
+  }
+  .users tr {
+    display: block;
+    border-bottom: 2px solid var(--border);
+    padding: 0.5rem 0;
+  }
+  .users td {
+    display: block;
+    border: none;
+    padding: 0.2rem 0.5rem;
+  }
 }

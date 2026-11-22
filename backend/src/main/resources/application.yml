@@ -1,6 +1,9 @@
 spring:
   application:
     name: fotozielnik
+  config:
+    # Local dev settings from the repo-root .env (gitignored; template: .env.example). Absent in prod/tests.
+    import: optional:file:../.env[.properties]
   threads:
     virtual:
       enabled: true
@@ -11,10 +14,35 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  session:
+    jdbc:
+      initialize-schema: never   # tables come from Flyway (V3__users_and_sessions.sql)
   docker:
     compose:
-      file: ../compose.yml       # `./gradlew bootRun` starts Postgres from the repo-root compose.yml
+      file: ../compose.yml       # `./gradlew bootRun` starts Postgres + Garage from the repo-root compose.yml
       lifecycle-management: start-only
+      start:
+        skip: never              # always `compose up` (no-op if running) so newly added services start too
+
+server:
+  servlet:
+    session:
+      timeout: 14d               # older users should rarely have to sign in again (ADR-0005)
+      cookie:
+        http-only: true
+        same-site: lax
+
+fotozielnik:
+  storage:                       # S3 (ADR-0007). Defaults = the dev Garage in compose.yml (dummy local-only keys)
+    endpoint: ${S3_ENDPOINT:http://localhost:3900}
+    region: ${S3_REGION:garage}
+    bucket: ${S3_BUCKET:photos}
+    access-key-id: ${S3_ACCESS_KEY_ID:GK000000000000000000000001}
+    secret-access-key: ${S3_SECRET_ACCESS_KEY:0000000000000000000000000000000000000000000000000000000000000002}
+    path-style: true
+  bootstrap-admin:               # first admin, only while no admin exists (FR-003)
+    email: ${ADMIN_EMAIL:}
+    initial-password: ${ADMIN_INITIAL_PASSWORD:}
 
 management:
   endpoints:
@@ -33,6 +61,19 @@ spring:
   config:
     activate:
       on-profile: prod
+server:
+  forward-headers-strategy: native   # behind Caddy: real client IP (login throttling) and https scheme
+  servlet:
+    session:
+      cookie:
+        secure: true
+fotozielnik:
+  storage:                           # no dev defaults in production: fail fast if not configured
+    endpoint: ${S3_ENDPOINT}
+    region: ${S3_REGION}
+    bucket: ${S3_BUCKET}
+    access-key-id: ${S3_ACCESS_KEY_ID}
+    secret-access-key: ${S3_SECRET_ACCESS_KEY}
 springdoc:
   api-docs:
     enabled: false

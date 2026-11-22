@@ -30,10 +30,17 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation(libs.springdoc.webmvc.ui)
+    implementation(libs.metadata.extractor)
+    implementation(libs.twelvemonkeys.imageio.jpeg) // robust JPEG decoding (CMYK, broken files) for ImageIO
+    implementation(platform(libs.aws.sdk.bom))
+    implementation("software.amazon.awssdk:s3") {
+        exclude(group = "software.amazon.awssdk", module = "netty-nio-client") // sync client only (Apache)
+    }
     implementation("org.jspecify:jspecify")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")

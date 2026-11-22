@@ -1,30 +1,16 @@
-import { useEffect, useState } from 'react'
-import { apiGet } from './api/client.ts'
-import type { AppInfo } from './api/types.ts'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createQueryClient } from './queryClient.ts'
+import { routes } from './routes.tsx'
 import './App.css'
 
-function App() {
-  const [info, setInfo] = useState<AppInfo | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    apiGet<AppInfo>('/api/public/info')
-      .then(setInfo)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
-  }, [])
-
+export default function App() {
+  const [client] = useState(createQueryClient)
+  const [router] = useState(() => createBrowserRouter(routes))
   return (
-    <main>
-      <h1>{'fotozielnik.pl'}</h1>
-      {error && <p role="alert">Backend unreachable: {error}</p>}
-      {!error && !info && <p>Loading...</p>}
-      {info && (
-        <p data-testid="backend-info">
-          Backend <strong>{info.name}</strong> {info.version} is up.
-        </p>
-      )}
-    </main>
+    <QueryClientProvider client={client}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   )
 }
-
-export default App

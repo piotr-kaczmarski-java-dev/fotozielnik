@@ -1,0 +1,16 @@
+# HTTPS with automatic certificates (Let's Encrypt). DOMAIN=localhost gives a local self-signed setup for testing.
+{$DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+	# The actuator is for the container healthcheck only.
+	@actuator path /actuator /actuator/*
+	respond @actuator 404
+	# Uploads are single photos (raw body); the app enforces the size limit.
+	reverse_proxy app:8080
+}

@@ -1,9 +1,111 @@
+/* Design tokens (ADR-0012): large type and targets for older users (NFR-008: >= 18 px, >= 44 px, AA contrast). */
+/* Design tokens (ADR-0012): large type and targets for older users (NFR-008: >= 18 px, >= 44 px, AA contrast).
+   Theme: <html data-theme="dark|light|system">, set before first paint by the script in index.html (src/theme.ts).
+   Dark is the default: photos stand out better on a dark background. All pairs checked for WCAG AA. */
 :root {
-  font-family: system-ui, sans-serif;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --radius: 10px;
+  --target: 44px;
+  --space: 1rem;
+  --text: #e8eee6;
+  --muted: #aab6a7;
+  --bg: #121813;
+  --surface: #1b231c;
+  --border: #36433a;
+  --control-border: #73867a;
+  --primary: #7cc781;
+  --primary-hover: #9ad69e;
+  --on-primary: #0d1a0e;
+  --focus: #e8c25a;
+  --error-bg: #3a1c19;
+  --error: #ffb4a8;
+  --info-bg: #162a3e;
+  --info: #a9cdf5;
+  --success-bg: #18311d;
+  --success: #a3dfa8;
+  color-scheme: dark;
+
+  font-family: var(--font);
+  font-size: 112.5%; /* 18 px when the browser default is 16 px; still follows the user's setting */
   line-height: 1.5;
-  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+}
+
+:root[data-theme='light'] {
+  --text: #1c2a1e;
+  --muted: #4d5c50;
+  --bg: #f6f8f4;
+  --surface: #ffffff;
+  --border: #c9d3c6; /* decorative edges (cards, dividers) */
+  --control-border: #7b8a7d; /* form fields: >= 3:1 against the surface (WCAG 1.4.11) */
+  --primary: #2f6b34;
+  --primary-hover: #24542a;
+  --on-primary: #ffffff;
+  --focus: #b8860b;
+  --error-bg: #fdecea;
+  --error: #8a1c12;
+  --info-bg: #e8f1fb;
+  --info: #1d4b7a;
+  --success-bg: #e6f4e7;
+  --success: #1e5a24;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+  --text: #1c2a1e;
+  --muted: #4d5c50;
+  --bg: #f6f8f4;
+  --surface: #ffffff;
+  --border: #c9d3c6; /* decorative edges (cards, dividers) */
+  --control-border: #7b8a7d; /* form fields: >= 3:1 against the surface (WCAG 1.4.11) */
+  --primary: #2f6b34;
+  --primary-hover: #24542a;
+  --on-primary: #ffffff;
+  --focus: #b8860b;
+  --error-bg: #fdecea;
+  --error: #8a1c12;
+  --info-bg: #e8f1fb;
+  --info: #1d4b7a;
+  --success-bg: #e6f4e7;
+  --success: #1e5a24;
+  color-scheme: light;
+  }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--bg);
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin: 0.5rem 0 1rem;
+}
+
+h2 {
+  font-size: 1.3rem;
+}
+
+a {
+  color: var(--primary);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

@@ -34,3 +34,6 @@ CLAUDE.local.md
 # ---- OS ----
 .DS_Store
 Thumbs.db
+
+# ---- Production backups (deploy/backup.sh) ----
+/deploy/backups/

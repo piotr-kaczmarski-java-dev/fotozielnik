@@ -36,6 +36,9 @@ up() {
     if backend_up; then ok "backend already up ($BACKEND_URL)"
     else
         docker_ok || { fail "Docker is not available; bootRun needs it for Postgres (compose.yml)"; return 3; }
+        if [[ ! -f "$ROOT/.env" && -f "$ROOT/.env.example" ]]; then
+            cp "$ROOT/.env.example" "$ROOT/.env" && info "created .env from .env.example (dev admin login)"
+        fi
         start_group backend "$BACKEND" ./gradlew --no-daemon --quiet --console=plain bootRun
         info "starting backend (logs/backend.log)..."
         wait_for backend backend_up 180 && ok "backend up ($BACKEND_URL)" || rc=1
